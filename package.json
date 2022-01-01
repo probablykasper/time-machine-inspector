@@ -11,22 +11,22 @@
     "check": "cargo check --manifest-path src-tauri/Cargo.toml && eslint src *.js && svelte-check"
   },
   "devDependencies": {
-    "@sveltejs/vite-plugin-svelte": "1.0.0-next.30",
+    "@sveltejs/vite-plugin-svelte": "1.0.0-next.33",
     "@tauri-apps/api": "1.0.0-beta.8",
     "@tauri-apps/cli": "1.0.0-beta.10",
-    "@typescript-eslint/eslint-plugin": "^5.2.0",
-    "@typescript-eslint/parser": "^5.2.0",
-    "eslint": "^8.1.0",
+    "@typescript-eslint/eslint-plugin": "^5.8.1",
+    "@typescript-eslint/parser": "^5.8.1",
+    "eslint": "^8.6.0",
     "eslint-config-prettier": "^8.3.0",
     "eslint-plugin-svelte3": "^3.2.1",
-    "prettier": "^2.4.1",
-    "prettier-plugin-svelte": "^2.4.0",
-    "sass": "^1.43.3",
-    "svelte": "^3.44.0",
+    "prettier": "^2.5.1",
+    "prettier-plugin-svelte": "^2.5.1",
+    "sass": "^1.45.2",
+    "svelte": "^3.44.3",
     "svelte-check": "^2.2.11",
-    "svelte-preprocess": "^4.9.8",
-    "typescript": "^4.4.4",
-    "vite": "^2.6.11"
+    "svelte-preprocess": "^4.10.1",
+    "typescript": "^4.5.4",
+    "vite": "^2.7.10"
   },
   "prettier": {
     "printWidth": 100,

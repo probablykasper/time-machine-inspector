@@ -1,11 +1,11 @@
 [package]
-name = "tauri-template"
+name = "time-machine-inspector"
 version = "0.1.0"
 description = "A Tauri App"
 authors = ["you"]
 license = ""
 repository = ""
-default-run = "tauri-template"
+default-run = "time-machine-inspector"
 edition = "2018"
 build = "src/build.rs"
 

@@ -1,15 +1,4 @@
-# Tauri Template
-
-- **Tauri**
-- **GitHub action** for cross-platform builds
-- **Builds for macOS 10.13+**
-- **Svelte**
-- **Vite**
-- **TypeScript**
-- **`svelte-preprocess`** with Sass installed by default
-- **Hot module replacement**
-- **ESLint**
-- **Prettier**
+# Time Machine Inspector
 
 ## Dev instructions
 

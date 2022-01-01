@@ -13,7 +13,7 @@ fn main() {
     .invoke_handler(tauri::generate_handler![])
     .create_window("main", WindowUrl::default(), |win, webview| {
       let win = win
-        .title("Tauri Template")
+        .title("Time Machine Inspector")
         .resizable(true)
         .transparent(false)
         .decorations(true)
@@ -65,8 +65,6 @@ fn main() {
         "Window",
         Menu::with_items([MenuItem::Minimize.into(), MenuItem::Zoom.into()]),
       )),
-      // You should always have a Help menu on macOS because it will automatically
-      // show a menu search field
       MenuEntry::Submenu(Submenu::new(
         "Help",
         Menu::with_items([CustomMenuItem::new("Learn More", "Learn More").into()]),
@@ -77,7 +75,7 @@ fn main() {
       match event_name {
         "Learn More" => {
           shell::open(
-            "https://github.com/probablykasper/tauri-template".to_string(),
+            "https://github.com/probablykasper/time-machine-inspector".to_string(),
             None,
           )
           .unwrap();
