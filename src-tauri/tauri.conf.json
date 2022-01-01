@@ -12,10 +12,7 @@
     "bundle": {
       "active": true,
       "targets": [
-        "dmg",
-        "deb",
-        "appimage",
-        "msi"
+        "dmg"
       ],
       "identifier": "space.kasper.time-machine-inspector",
       "icon": [
