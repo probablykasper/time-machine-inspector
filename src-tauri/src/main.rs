@@ -6,7 +6,8 @@
 use std::thread;
 use tauri::api::{dialog, shell};
 use tauri::{
-  command, CustomMenuItem, Menu, MenuEntry, MenuItem, Submenu, Window, WindowBuilder, WindowUrl,
+  command, CustomMenuItem, Manager, Menu, MenuEntry, MenuItem, Submenu, Window, WindowBuilder,
+  WindowUrl,
 };
 
 mod cmd;
@@ -37,12 +38,22 @@ fn main() {
         .resizable(true)
         .transparent(false)
         .decorations(true)
+        // .transparent(true)
         .always_on_top(false)
         .inner_size(800.0, 550.0)
         .min_inner_size(400.0, 200.0)
         .skip_taskbar(false)
         .fullscreen(false);
       return (win, webview);
+    })
+    .setup(|app| {
+      let window: tauri::Window = app.handle().get_window("main").unwrap();
+      #[cfg(target_os = "macos")]
+      {
+        use tauri_plugin_vibrancy::Vibrancy;
+        window.apply_vibrancy(tauri_plugin_vibrancy::MacOSVibrancy::WindowBackground);
+      }
+      Ok(())
     })
     .menu(Menu::with_items([
       #[cfg(target_os = "macos")]
