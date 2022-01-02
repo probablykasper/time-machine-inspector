@@ -3,14 +3,34 @@
   windows_subsystem = "windows"
 )]
 
-use tauri::api::shell;
-use tauri::{CustomMenuItem, Menu, MenuEntry, MenuItem, Submenu, WindowBuilder, WindowUrl};
+use std::thread;
+use tauri::api::{dialog, shell};
+use tauri::{
+  command, CustomMenuItem, Menu, MenuEntry, MenuItem, Submenu, Window, WindowBuilder, WindowUrl,
+};
+
+mod cmd;
+
+#[command]
+fn error_popup(msg: String, win: Window) {
+  println!("Error: {}", msg);
+  thread::spawn(move || {
+    dialog::message(Some(&win), "Error", msg);
+  });
+}
+
+#[macro_export]
+macro_rules! throw {
+  ($($arg:tt)*) => {{
+    return Err(format!($($arg)*))
+  }};
+}
 
 fn main() {
   let ctx = tauri::generate_context!();
 
   tauri::Builder::default()
-    .invoke_handler(tauri::generate_handler![])
+    .invoke_handler(tauri::generate_handler![error_popup, cmd::load_backups])
     .create_window("main", WindowUrl::default(), |win, webview| {
       let win = win
         .title("Time Machine Inspector")
@@ -25,6 +45,7 @@ fn main() {
       return (win, webview);
     })
     .menu(Menu::with_items([
+      #[cfg(target_os = "macos")]
       MenuEntry::Submenu(Submenu::new(
         &ctx.package_info().name,
         Menu::with_items([
