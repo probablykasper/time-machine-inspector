@@ -11,6 +11,8 @@ use tauri::{
 };
 
 mod cmd;
+mod compare;
+mod dir_map;
 
 #[command]
 fn error_popup(msg: String, win: Window) {
@@ -31,7 +33,11 @@ fn main() {
   let ctx = tauri::generate_context!();
 
   tauri::Builder::default()
-    .invoke_handler(tauri::generate_handler![error_popup, cmd::load_backups])
+    .invoke_handler(tauri::generate_handler![
+      error_popup,
+      cmd::load_backups,
+      cmd::compare_backups,
+    ])
     .create_window("main", WindowUrl::default(), |win, webview| {
       let win = win
         .title("Time Machine Inspector")
@@ -40,8 +46,8 @@ fn main() {
         .decorations(true)
         // .transparent(true)
         .always_on_top(false)
-        .inner_size(800.0, 550.0)
-        .min_inner_size(400.0, 200.0)
+        .inner_size(900.0, 600.0)
+        .min_inner_size(600.0, 250.0)
         .skip_taskbar(false)
         .fullscreen(false);
       return (win, webview);

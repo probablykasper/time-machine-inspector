@@ -1,65 +1,16 @@
 <script lang="ts">
-  import { runCmd } from './general'
   import Item, { ItemClickEvent } from './Item.svelte'
-  import { page } from './page'
-
-  let rootPath = '/'
-  let backups: DirMap | null = null
-
-  type DirMap = {
-    '/': string[]
-    [name: string]: string[]
-  }
-
-  function parseStdout(stdout: string) {
-    const paths = stdout.split('\n').filter((path) => path !== '')
-    const dirmap: DirMap = { '/': [] }
-
-    paths.forEach((path) => {
-      let base = path.substring(path.lastIndexOf('/') + 1)
-      let parent = path.substring(0, path.lastIndexOf('/'))
-      do {
-        if (parent === '') {
-          dirmap['/'].push(base)
-          break
-        } else if (dirmap[parent] === undefined) {
-          dirmap[parent] = [base]
-        } else {
-          dirmap[parent].push(base)
-          break
-        }
-        base = parent.substring(parent.lastIndexOf('/') + 1)
-        parent = parent.substring(0, parent.lastIndexOf('/'))
-      } while (dirmap[parent] === undefined)
-    })
-
-    console.log(dirmap)
-    return dirmap
-  }
-
-  let stdout: string | null = null
-  $: stdoutUpdate(stdout)
-  function stdoutUpdate(stdout: string | null) {
-    if (stdout === null) {
-      backups = null
-    } else {
-      backups = parseStdout(stdout)
-      if (backups['/'].length === 1 && backups['/'][0] === 'Volumes') {
-        rootPath = '/Volumes'
-      } else {
-        rootPath = '/'
-      }
-    }
-  }
+  import { page, backups, close as closePage, loadBackups } from './page'
+  import Page from './Page.svelte'
 
   let loading = false
-  async function loadBackups() {
+  async function refreshBackups() {
     if (loading) {
       return
     }
     loading = true
-    stdout = (await runCmd('load_backups')) as string | null
-    await new Promise((resolve) => setTimeout(resolve, 1000))
+    closePage()
+    loadBackups()
     loading = false
   }
 
@@ -73,46 +24,50 @@
       }
     }
   }
+  refreshBackups()
 </script>
 
 <div class="sidebar">
-  <button on:click={loadBackups} class:disabled={loading} tabindex="0">
+  <button on:click={refreshBackups} class:disabled={loading} tabindex="0">
     {#if loading}
       Loading...
     {:else}
-      Load Backups
+      Refresh
     {/if}
   </button>
-  {#if backups !== null}
-    {#each backups[rootPath] as child}
-      {#if rootPath === '/'}
-        <Item
-          map={backups}
-          selectedPath={$page.fullPath + '/' + $page.name}
-          name={child}
-          fullPath={'/' + child}
-          on:click={sidebarClick} />
-      {:else}
-        <Item
-          map={backups}
-          selectedPath={$page.fullPath + '/' + $page.name}
-          name={child}
-          fullPath={rootPath + '/' + child}
-          on:click={sidebarClick} />
-      {/if}
-    {/each}
-  {/if}
+  <div class="content">
+    {#if $backups !== null}
+      {#each $backups.dirs[$backups.rootPath] as child}
+        {#if $backups.rootPath === '/'}
+          <Item
+            map={$backups.dirs}
+            selectedPath={$page.fullPath + '/' + $page.name}
+            name={child}
+            fullPath={'/' + child}
+            on:click={sidebarClick} />
+        {:else}
+          <Item
+            map={$backups.dirs}
+            selectedPath={$page.fullPath + '/' + $page.name}
+            name={child}
+            fullPath={$backups.rootPath + '/' + child}
+            on:click={sidebarClick} />
+        {/if}
+      {/each}
+    {/if}
+  </div>
 </div>
-<div class="page" />
+<Page />
 
 <style lang="sass">
   $easing: cubic-bezier(0.4, 0.0, 0.2, 1)
   :global(html)
     height: 100%
     background-color: hsl(230, 72%, 7%)
-    font-family: Karla, Arial, Helvetica, sans-serif
+    font-family: 'Open Sans', Arial, Helvetica, sans-serif
     font-size: 18px
     color: #f2f2f2
+    color-scheme: dark
   :global(body)
     height: 100%
     margin: 0px
@@ -120,6 +75,11 @@
     box-sizing: border-box
     border-top: 0px
     background-image: radial-gradient(circle at 50% 27%, hsl(230, 65%, 33%), transparent 100%),radial-gradient(circle at 0% 90%, hsl(230, 53%, 38%), transparent 40%),radial-gradient(circle at 5% 1%, hsl(230, 71%, 4%), transparent 100%),radial-gradient(circle at 50% 50%, #000000, #000000 100%)
+    background-image: radial-gradient(circle at -10% -10%, hsl(230, 65%, 30%), hsl(230, 72%, 9%) 110%)
+    background-image: radial-gradient(circle at -10% -10%, #25282F, #14101C 110%)
+  :global(p)
+    color: hsla(216, 50%, 85%, 0.8)
+    font-size: 15px
   .sidebar
     flex-shrink: 0
     flex-grow: 1
@@ -133,15 +93,13 @@
     border-right: 1px solid hsla(230, 100%, 85%, 0.12)
     display: flex
     flex-direction: column
-  .page
-    width: 100%
-    height: 100%
   button
+    font-family: inherit
     user-select: none
     cursor: default
     outline: none
     box-sizing: border-box
-    padding: 9px 18px
+    padding: 7px 18px
     text-align: center
     font-size: 13px
     margin: 15px
@@ -149,14 +107,18 @@
     border-radius: 5px
     background-color: hsla(230, 80%, 75%, 0.2)
     color: hsla(230, 100%, 90%, 0.8)
-    font-weight: 500
+    font-weight: 530
     text-shadow: 0px 0.1em 0.8em hsla(230, 30%, 7%, 1)
     transition: all 240ms $easing
     &:focus
       box-shadow: 0px 0px 0px 2px hsla(230, 100%, 80%, 0.5)
     &.disabled, &:hover
-      font-weight: 700
-      letter-spacing: 0.02em
+      font-weight: 600
+      letter-spacing: 0.05em
     &.disabled, &:active
       opacity: 0.75
+  .content
+    overflow: auto
+    height: 10px
+    flex-grow: 1
 </style>

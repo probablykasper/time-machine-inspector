@@ -1,6 +1,9 @@
-use crate::throw;
+use crate::dir_map::DirMap;
+use crate::{compare, dir_map, throw};
 use std::fs::File;
-use std::process::Command;
+use std::io::{BufRead, BufReader};
+use std::process::{Command, ExitStatus, Stdio};
+use std::time::Instant;
 use tauri::api::{dialog, shell};
 use tauri::{command, Window};
 
@@ -18,14 +21,21 @@ fn code_to_str(code: Option<i32>) -> String {
   }
 }
 
-#[command]
-pub async fn load_backups(w: Window) -> Result<Option<String>, String> {
+fn check_cmd_success(status: &ExitStatus, stderr: Vec<u8>) -> Result<(), String> {
+  if !status.success() {
+    let stderr = parse_output(stderr)?;
+    throw!("tmutil error {}:\n{}", code_to_str(status.code()), stderr);
+  }
+  Ok(())
+}
+
+pub async fn full_disk_access(dialog_window: Window) -> Result<(), String> {
   match File::open("/Library/Preferences/com.apple.TimeMachine.plist") {
     Ok(_file) => {}
     Err(e) => match e.kind() {
       std::io::ErrorKind::PermissionDenied => {
         dialog::message(
-          Some(&w),
+          Some(&dialog_window),
           "Full Disk Access",
           "Time Machine Utility requires full disk access to interact with Time Machine.\n\
           To grant access:\n\
@@ -37,26 +47,86 @@ pub async fn load_backups(w: Window) -> Result<Option<String>, String> {
         let link = "x-apple.systempreferences:com.apple.preference.security?Privacy_AllFiles";
         shell::open(link.to_string(), None).unwrap();
 
-        return Ok(None);
+        return Ok(());
       }
       _ => eprintln!("Unable to open Time Machine preferences: {}", e),
     },
   };
+  Ok(())
+}
 
-  let cmd = Command::new("tmutil")
+#[command]
+pub async fn load_backups(w: Window) -> Result<Option<String>, String> {
+  full_disk_access(w).await?;
+
+  // return Ok(Some(
+  //   "/Volumes/Time Machine Backups/Backups.backupdb/my-mac/2021-12-21-133750\n\
+  //   /Volumes/Time Machine Backups/Backups.backupdb/my-mac/2021-12-22-162608\n\
+  //   /Volumes/Time Machine Backups/Backups.backupdb/my-mac/2021-12-23-180250\n\
+  //   /Volumes/Time Machine Backups/Backups.backupdb/my-mac/2021-12-24-175020\n\
+  //   /Volumes/Time Machine Backups/Backups.backupdb/my-mac/2021-12-25-164417\n\
+  //   /Volumes/Time Machine Backups/Backups.backupdb/my-mac/2021-12-26-161709\n\
+  //   /Volumes/Time Machine Backups/Backups.backupdb/my-mac/2021-12-27-193733\n"
+  //     .to_string(),
+  // ));
+
+  let output = Command::new("tmutil")
     .arg("listbackups")
     .output()
-    .expect("Error getting backups");
+    .expect("Error calling command");
+  check_cmd_success(&output.status, output.stderr.clone())?;
 
-  if !cmd.status.success() {
-    let stderr = parse_output(cmd.stderr)?;
-    eprintln!(
-      "listbackups exited with error code {}. stderr:\n{}",
-      code_to_str(cmd.status.code()),
-      stderr,
-    );
-    throw!("{}", stderr);
+  Ok(Some(parse_output(output.stdout)?))
+}
+
+#[command]
+pub async fn compare_backups(old: String, new: String, w: Window) -> Result<DirMap, String> {
+  full_disk_access(w).await?;
+
+  let mut anchor = Instant::now();
+
+  let mut cmd = Command::new("tmutil")
+    .arg("compare")
+    .arg("-X")
+    .arg("-s")
+    .arg(&old)
+    .arg(&new)
+    .stdout(Stdio::piped())
+    .stderr(Stdio::piped())
+    .spawn()
+    .expect("Error calling command");
+
+  println!("\u{23f1}  {:.3}ms running tmutil", reset_dur(&mut anchor));
+
+  let mut child_out = BufReader::new(cmd.stdout.as_mut().unwrap());
+  let mut lines = Vec::new();
+
+  loop {
+    match child_out.read_until(b'\n', &mut lines) {
+      Ok(0) => break,
+      _ => {}
+    };
   }
 
-  Ok(Some(parse_output(cmd.stdout)?))
+  let output = cmd.wait_with_output().expect("Failed ot wait on command");
+  check_cmd_success(&output.status, output.stderr)?;
+
+  println!("\u{23f1}  {:.3}ms reading output", reset_dur(&mut anchor));
+
+  let comparison = compare::parse_xml(&lines)?;
+  println!("{:#?}", comparison.totals);
+
+  println!("\u{23f1}  {:.3}ms parse xml", reset_dur(&mut anchor));
+
+  let dir_map = dir_map::make_map(comparison)?;
+
+  println!("\u{23f1}  {:.3}ms constructing map", reset_dur(&mut anchor));
+
+  Ok(dir_map)
+}
+
+fn reset_dur(since: &mut Instant) -> f32 {
+  let dur = Instant::now().duration_since(*since).as_nanos() as f32;
+  *since = Instant::now();
+  dur / 1000.0 / 1000.0
 }
