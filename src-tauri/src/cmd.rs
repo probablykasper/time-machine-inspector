@@ -1,5 +1,5 @@
 use crate::dir_map::DirMap;
-use crate::{compare, dir_map, throw};
+use crate::{compare, dir_map, reset_dur, throw};
 use std::fs::File;
 use std::io::{BufRead, BufReader};
 use std::process::{Command, ExitStatus, Stdio};
@@ -123,10 +123,4 @@ pub async fn compare_backups(old: String, new: String, w: Window) -> Result<DirM
   println!("\u{23f1}  {:.3}ms constructing map", reset_dur(&mut anchor));
 
   Ok(dir_map)
-}
-
-fn reset_dur(since: &mut Instant) -> f32 {
-  let dur = Instant::now().duration_since(*since).as_nanos() as f32;
-  *since = Instant::now();
-  dur / 1000.0 / 1000.0
 }

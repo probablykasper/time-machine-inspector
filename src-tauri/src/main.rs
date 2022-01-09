@@ -4,6 +4,7 @@
 )]
 
 use std::thread;
+use std::time::Instant;
 use tauri::api::{dialog, shell};
 use tauri::{
   command, CustomMenuItem, Manager, Menu, MenuEntry, MenuItem, Submenu, Window, WindowBuilder,
@@ -27,6 +28,12 @@ macro_rules! throw {
   ($($arg:tt)*) => {{
     return Err(format!($($arg)*))
   }};
+}
+
+pub fn reset_dur(since: &mut Instant) -> f32 {
+  let dur = Instant::now().duration_since(*since).as_nanos() as f32;
+  *since = Instant::now();
+  dur / 1000.0 / 1000.0
 }
 
 fn main() {

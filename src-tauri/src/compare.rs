@@ -1,8 +1,9 @@
-use crate::throw;
+use crate::{reset_dur, throw};
 use plist::Value;
 use serde::de::DeserializeOwned;
 use serde::{Deserialize, Serialize};
 use std::io::{BufWriter, Cursor};
+use std::time::Instant;
 
 #[derive(Serialize, Debug)]
 pub struct Comparison {
@@ -80,6 +81,9 @@ pub fn parse_xml(lines: &[u8]) -> Result<Comparison, String> {
   };
 
   let mut changes = Vec::with_capacity(comparison.changes.len());
+
+  let mut anchor = Instant::now();
+
   for change_dict in &comparison.changes {
     let change: Change = match deserialize_value(&change_dict) {
       Ok(v) => v,
@@ -93,6 +97,8 @@ pub fn parse_xml(lines: &[u8]) -> Result<Comparison, String> {
     };
     changes.push(change);
   }
+
+  println!("\u{23f1}  {:.3}ms parsing xml", reset_dur(&mut anchor));
 
   Ok(Comparison {
     changes,
