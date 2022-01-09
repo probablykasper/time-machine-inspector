@@ -37,6 +37,8 @@
     }
     selectedPath = e.detail.fullPath + '/' + e.detail.name
   }
+
+  $: rootPath = $page.fullPath
 </script>
 
 {#if $page.fullPath === ''}
@@ -47,7 +49,7 @@
 {:else}
   <main>
     <div class="bar">{$page.fullPath}</div>
-    {#if dirMap === null}
+    {#if dirMap === null || dirMap[rootPath] === undefined}
       <button on:click={compare} class:disabled={loading}>
         {#if loading}
           Loading...
@@ -56,13 +58,13 @@
         {/if}
       </button>
     {:else}
-      {#each Object.entries(dirMap['/']) as [childName, size]}
+      {#each Object.entries(dirMap[rootPath]) as [childName, size]}
         <PageItem
           map={dirMap}
           {selectedPath}
           name={childName}
           {size}
-          fullPath={'/' + childName}
+          fullPath={rootPath + '/' + childName}
           on:click={itemClick} />
       {/each}
     {/if}
