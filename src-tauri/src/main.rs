@@ -40,6 +40,7 @@ fn main() {
   let ctx = tauri::generate_context!();
 
   tauri::Builder::default()
+    .manage(cmd::List(Default::default()))
     .invoke_handler(tauri::generate_handler![
       error_popup,
       cmd::load_backups,

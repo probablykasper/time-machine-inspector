@@ -4,13 +4,13 @@
   import Page from './Page.svelte'
 
   let loading = false
-  async function refreshBackups() {
+  async function refreshBackups(refresh = false) {
     if (loading) {
       return
     }
     loading = true
     closePage()
-    await loadBackups()
+    await loadBackups(refresh)
     loading = false
   }
 
@@ -28,7 +28,7 @@
 </script>
 
 <div class="sidebar">
-  <button on:click={refreshBackups} class:disabled={loading} tabindex="0">
+  <button on:click={() => refreshBackups(true)} class:disabled={loading} tabindex="0">
     {#if loading}
       Loading...
     {:else}

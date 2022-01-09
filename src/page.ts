@@ -66,8 +66,8 @@ export function parseStdout(stdout: string | null): Backups | null {
   return { dirs, rootPath }
 }
 
-export async function loadBackups() {
-  const stdout = (await runCmd('load_backups')) as string | null
+export async function loadBackups(refresh = false) {
+  const stdout = (await runCmd('load_backups', { refresh })) as string | null
   backups.set(parseStdout(stdout))
   console.log(parseStdout(stdout))
 }

@@ -3,9 +3,10 @@ use crate::{compare, dir_map, reset_dur, throw};
 use std::fs::File;
 use std::io::{BufRead, BufReader};
 use std::process::{Command, ExitStatus, Stdio};
+use std::sync::Mutex;
 use std::time::Instant;
 use tauri::api::{dialog, shell};
-use tauri::{command, Window};
+use tauri::{command, State, Window};
 
 fn parse_output(bytes: Vec<u8>) -> Result<String, String> {
   match String::from_utf8(bytes) {
@@ -28,6 +29,9 @@ fn check_cmd_success(status: &ExitStatus, stderr: Vec<u8>) -> Result<(), String>
   }
   Ok(())
 }
+
+#[derive(Default)]
+pub struct List(pub Mutex<Option<String>>);
 
 pub async fn full_disk_access(dialog_window: Window) -> Result<(), String> {
   match File::open("/Library/Preferences/com.apple.TimeMachine.plist") {
@@ -56,16 +60,21 @@ pub async fn full_disk_access(dialog_window: Window) -> Result<(), String> {
 }
 
 #[command]
-pub async fn load_backups(w: Window) -> Result<Option<String>, String> {
+pub async fn load_backups(
+  refresh: bool,
+  w: Window,
+  backups_list_str: State<'_, List>,
+) -> Result<Option<String>, String> {
+  if !refresh {
+    if let Some(s) = &*backups_list_str.0.lock().unwrap() {
+      return Ok(Some(s.clone()));
+    }
+  }
+
   full_disk_access(w).await?;
 
   // return Ok(Some(
   //   "/Volumes/Time Machine Backups/Backups.backupdb/my-mac/2021-12-21-133750\n\
-  //   /Volumes/Time Machine Backups/Backups.backupdb/my-mac/2021-12-22-162608\n\
-  //   /Volumes/Time Machine Backups/Backups.backupdb/my-mac/2021-12-23-180250\n\
-  //   /Volumes/Time Machine Backups/Backups.backupdb/my-mac/2021-12-24-175020\n\
-  //   /Volumes/Time Machine Backups/Backups.backupdb/my-mac/2021-12-25-164417\n\
-  //   /Volumes/Time Machine Backups/Backups.backupdb/my-mac/2021-12-26-161709\n\
   //   /Volumes/Time Machine Backups/Backups.backupdb/my-mac/2021-12-27-193733\n"
   //     .to_string(),
   // ));
@@ -76,7 +85,11 @@ pub async fn load_backups(w: Window) -> Result<Option<String>, String> {
     .expect("Error calling command");
   check_cmd_success(&output.status, output.stderr.clone())?;
 
-  Ok(Some(parse_output(output.stdout)?))
+  let output_str = parse_output(output.stdout)?;
+  let mut s = backups_list_str.0.lock().unwrap();
+  *s = Some(output_str.clone());
+
+  Ok(Some(output_str))
 }
 
 #[command]
