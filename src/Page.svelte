@@ -47,19 +47,21 @@
 {:else}
   <main>
     <div class="bar">{$page.fullPath}</div>
-    <button on:click={compare}>
-      {#if loading}
-        Loading...
-      {:else}
-        Load
-      {/if}
-    </button>
-    {#if dirMap !== null}
+    {#if dirMap === null}
+      <button on:click={compare} class:disabled={loading}>
+        {#if loading}
+          Loading...
+        {:else}
+          Load
+        {/if}
+      </button>
+    {:else}
       {#each Object.entries(dirMap['/']) as [childName, size]}
         <PageItem
           map={dirMap}
           {selectedPath}
           name={childName}
+          {size}
           fullPath={'/' + childName}
           on:click={itemClick} />
       {/each}
@@ -68,6 +70,7 @@
 {/if}
 
 <style lang="sass">
+  $easing: cubic-bezier(0.4, 0.0, 0.2, 1)
   main
     width: 100%
     height: 100%
@@ -84,4 +87,28 @@
     background-color: hsla(230, 80%, 90%, 0.1)
     font-size: 13px
     padding: 5px 10px
+  button
+    font-family: inherit
+    user-select: none
+    cursor: default
+    outline: none
+    box-sizing: border-box
+    padding: 7px 18px
+    text-align: center
+    font-size: 13px
+    margin: 15px
+    border: 1px solid hsla(230, 100%, 80%, 0.1)
+    border-radius: 5px
+    background-color: hsla(230, 80%, 75%, 0.2)
+    color: hsla(230, 100%, 90%, 0.8)
+    font-weight: 530
+    text-shadow: 0px 0.1em 0.8em hsla(230, 30%, 7%, 1)
+    transition: all 240ms $easing
+    &:focus
+      box-shadow: 0px 0px 0px 2px hsla(230, 100%, 80%, 0.5)
+    &.disabled, &:hover
+      font-weight: 600
+      letter-spacing: 0.05em
+    &.disabled, &:active
+      opacity: 0.75
 </style>

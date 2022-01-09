@@ -22,6 +22,7 @@
 
   export let name: string
   export let fullPath: string
+  export let size: number
   $: isFolder = map[fullPath] !== undefined
 
   export let selectedPath: string
@@ -54,6 +55,19 @@
       ><path d="M21 12l-18 12v-24z" /></svg>
   {/if}
   {name}
+  <div class="size">
+    {#if size < 1_000}
+      {size}
+    {:else if size < 1_000_000}
+      {size / 1_000} KB
+    {:else if size < 1_000_000_000}
+      {size / 1_000_000} MB
+    {:else if size < 1_000_000_000_000}
+      {size / 1_000_000_000} GB
+    {:else if size < 1_000_000_000_000_000}
+      {size / 1_000_000_000_000} TB
+    {/if}
+  </div>
 </div>
 <div class="children">
   {#if open && isFolder}
@@ -62,6 +76,7 @@
         {map}
         {selectedPath}
         name={childName}
+        {size}
         fullPath={fullPath + '/' + childName}
         on:click
         indentLevel={indentLevel + 1} />
@@ -72,10 +87,14 @@
 <style lang="sass">
   .item
     font-size: 14px
+    display: flex
+    align-items: center
+    box-sizing: border-box
     color: hsla(216, 50%, 70%, 0.75)
     cursor: default
     user-select: none
-    padding: 4px 0px
+    padding-top: 4px
+    padding-bottom: 4px
     box-sizing: border-box
     width: 100%
     &.selected
@@ -87,4 +106,8 @@
     width: 10px
     height: 10px
     margin-right: 1px
+  .size
+    display: inline-block
+    margin-left: auto
+    margin-right: 10px
 </style>

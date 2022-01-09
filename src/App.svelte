@@ -10,7 +10,7 @@
     }
     loading = true
     closePage()
-    loadBackups()
+    await loadBackups()
     loading = false
   }
 
