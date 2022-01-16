@@ -59,7 +59,7 @@
   <main>
     <div class="bar">{$page.fullPath}</div>
     {#if dirMap === null || dirMap[rootPath] === undefined}
-      <button on:click={compare} class:disabled={loading}>
+      <button on:click={() => compare()} class:disabled={loading}>
         {#if loading}
           Loading...
         {:else}

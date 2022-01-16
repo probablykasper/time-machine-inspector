@@ -85,6 +85,7 @@
     transform: rotate(90deg)
   .is-cached
     font-weight: 600
+    color: hsla(216, 50%, 80%, 0.9)
   svg
     fill: hsla(216, 50%, 70%, 0.75)
     width: 10px
