@@ -1,45 +1,86 @@
-use crate::compare;
+use crate::{compare, throw};
+use serde::Serialize;
+use std::collections::hash_map::Entry;
 use std::collections::HashMap;
-use std::path::PathBuf;
+use std::ffi::OsStr;
+use std::path::{Path, PathBuf};
 
-pub type DirItem = u64;
-pub type DirContent = HashMap<String, DirItem>;
-pub type DirMap = HashMap<String, DirContent>;
+pub type DirContents<I> = HashMap<String, I>;
 
-pub fn make_map(comparison: compare::Comparison) -> Result<DirMap, String> {
-  let mut dir_map: DirMap = HashMap::new();
-  dir_map.entry("/".into()).or_default();
+#[derive(Serialize, Clone, Debug)]
+pub struct DirMap<I> {
+  pub map: HashMap<String, DirContents<I>>,
+}
 
-  for change in comparison.changes {
-    let new_item = match change {
-      compare::Change::Add(add) => add.added_item,
-      compare::Change::Update(update) => update.newer_item,
-      compare::Change::Delete(_) => continue,
-    };
-    let path = PathBuf::from(new_item.path);
+fn get_parent<'a>(path: &'a Path) -> Result<&'a Path, String> {
+  match path.parent() {
+    Some(p) => Ok(p),
+    None => throw!("No parent of path {}", path.to_string_lossy()),
+  }
+}
+fn get_basename<'a>(path: &'a Path) -> Result<&'a OsStr, String> {
+  match path.file_name() {
+    Some(p) => Ok(p),
+    None => throw!("No base of path {}", path.to_string_lossy()),
+  }
+}
 
-    let mut base = path.file_name().expect("path base");
-    let mut parent = path.parent().expect("path parent");
-    loop {
-      let dir_content = dir_map
-        .entry(parent.to_string_lossy().to_string())
-        .or_insert(HashMap::new());
-
-      let dir_item = dir_content
-        .entry(base.to_string_lossy().to_string())
-        .or_insert(0);
-      *dir_item += new_item.size;
-
-      base = match parent.file_name() {
-        Some(v) => v,
-        None => break,
-      };
-      parent = match parent.parent() {
-        Some(v) => v,
-        None => break,
-      };
+impl<I> DirMap<I> {
+  pub fn new() -> Self {
+    Self {
+      map: HashMap::new(),
     }
   }
+  pub fn get_or_create_dir(&mut self, path: String) -> &mut DirContents<I> {
+    self.map.entry(path).or_insert(HashMap::new())
+  }
+  pub fn item_entry(&mut self, path: &Path) -> Result<Entry<String, I>, String> {
+    let dir = get_parent(path)?.to_string_lossy().to_string();
+    let basename = get_basename(path)?.to_string_lossy().to_string();
 
-  Ok(dir_map)
+    let dir_contents = self.get_or_create_dir(dir);
+    Ok(dir_contents.entry(basename))
+  }
+}
+
+impl DirMap<()> {
+  pub fn from_string_paths(str_paths: Vec<String>) -> Result<Self, String> {
+    let mut dir_map = DirMap::new();
+
+    for str_path in str_paths {
+      let path = PathBuf::from(str_path);
+
+      for ancestor in path.ancestors() {
+        if ancestor == Path::new("/") {
+          break;
+        }
+        dir_map.item_entry(ancestor)?.or_insert(());
+      }
+    }
+    Ok(dir_map)
+  }
+}
+
+impl DirMap<u64> {
+  pub fn from_comparison(comparison: compare::Comparison) -> Result<Self, String> {
+    let mut dir_map = DirMap::new();
+
+    for change in comparison.changes {
+      let new_item = match change {
+        compare::Change::Add(add) => add.added_item,
+        compare::Change::Update(update) => update.newer_item,
+        compare::Change::Delete(_) => continue,
+      };
+      let path = PathBuf::from(new_item.path);
+
+      for ancestor in path.ancestors() {
+        if ancestor == Path::new("/") {
+          break;
+        }
+        let item = dir_map.item_entry(ancestor)?.or_insert(0);
+        *item += new_item.size;
+      }
+    }
+    Ok(dir_map)
+  }
 }

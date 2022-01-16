@@ -1,6 +1,7 @@
 <script lang="ts" context="module">
   export type ItemClickEventDetail = {
     name: string
+    dir: string
     fullPath: string
     isFolder: boolean
     toggleChildren: () => void
@@ -10,15 +11,12 @@
 
 <script lang="ts">
   import { createEventDispatcher } from 'svelte'
-
-  type DirMap = {
-    '/': string[]
-    [name: string]: string[]
-  }
+  import type { DirMap } from './page'
 
   export let map: DirMap
 
   export let name: string
+  export let dir: string
   export let fullPath: string
   $: isFolder = map[fullPath] !== undefined
 
@@ -33,6 +31,7 @@
     dispatch('click', {
       name,
       fullPath,
+      dir,
       isFolder,
       toggleChildren: () => {
         open = !open
@@ -55,12 +54,13 @@
 </div>
 <div class="children">
   {#if open && isFolder}
-    {#each map[fullPath] as child}
+    {#each Object.keys(map[fullPath]).sort() as child}
       <svelte:self
         {map}
-        {selectedPath}
         name={child}
+        dir={fullPath}
         fullPath={fullPath + '/' + child}
+        {selectedPath}
         on:click
         indentLevel={indentLevel + 1} />
     {/each}

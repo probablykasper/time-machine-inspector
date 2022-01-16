@@ -19,13 +19,14 @@
       return
     }
     const fullPathParent = $page.fullPath.substring(0, $page.fullPath.lastIndexOf('/'))
-    const dir = $backups.dirs[fullPathParent]
-    const selectedBackupIndex = dir.indexOf($page.name)
-    if (selectedBackupIndex >= 1) {
-      const prevBackup = fullPathParent + '/' + dir[selectedBackupIndex - 1]
-      const args = { old: prevBackup, new: $page.fullPath }
+    const dir = $backups.dirs[fullPathParent][$page.name]
+    if (dir !== undefined) {
       loading = true
-      dirMap = (await runCmd('compare_backups', args)) as DirMap
+      const result = (await runCmd('compare_backups', {
+        old: $page.prevPath,
+        new: $page.fullPath,
+      })) as { map: DirMap }
+      dirMap = result.map
       console.log(dirMap)
     }
     loading = false

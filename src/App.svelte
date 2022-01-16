@@ -1,10 +1,10 @@
 <script lang="ts">
-  import Item, { ItemClickEvent } from './Item.svelte'
-  import { page, backups, close as closePage, loadBackups } from './page'
   import Page from './Page.svelte'
+  import Sidebar from './Sidebar.svelte'
+  import { backups, close as closePage, loadBackups } from './page'
 
   let loading = false
-  async function refreshBackups(refresh = false) {
+  async function load(refresh = false) {
     if (loading) {
       return
     }
@@ -13,49 +13,20 @@
     await loadBackups(refresh)
     loading = false
   }
-
-  function sidebarClick(e: ItemClickEvent) {
-    if (e.detail.isFolder) {
-      e.detail.toggleChildren()
-    } else {
-      $page = {
-        name: e.detail.name,
-        fullPath: e.detail.fullPath,
-      }
-    }
-  }
-  refreshBackups()
+  load()
 </script>
 
 <div class="sidebar">
-  <button on:click={() => refreshBackups(true)} class:disabled={loading} tabindex="0">
+  <button on:click={() => load(true)} class:disabled={loading} tabindex="0">
     {#if loading}
       Loading...
     {:else}
       Refresh
     {/if}
   </button>
-  <div class="content">
-    {#if $backups !== null}
-      {#each $backups.dirs[$backups.rootPath] as child}
-        {#if $backups.rootPath === '/'}
-          <Item
-            map={$backups.dirs}
-            selectedPath={$page.fullPath + '/' + $page.name}
-            name={child}
-            fullPath={'/' + child}
-            on:click={sidebarClick} />
-        {:else}
-          <Item
-            map={$backups.dirs}
-            selectedPath={$page.fullPath + '/' + $page.name}
-            name={child}
-            fullPath={$backups.rootPath + '/' + child}
-            on:click={sidebarClick} />
-        {/if}
-      {/each}
-    {/if}
-  </div>
+  {#if $backups !== null}
+    <Sidebar backups={$backups} />
+  {/if}
 </div>
 <Page />
 
@@ -93,6 +64,7 @@
     border-right: 1px solid hsla(230, 100%, 85%, 0.12)
     display: flex
     flex-direction: column
+  $easing: cubic-bezier(0.4, 0.0, 0.2, 1)
   button
     font-family: inherit
     user-select: none
@@ -117,8 +89,4 @@
       letter-spacing: 0.05em
     &.disabled, &:active
       opacity: 0.75
-  .content
-    overflow: auto
-    height: 10px
-    flex-grow: 1
 </style>
