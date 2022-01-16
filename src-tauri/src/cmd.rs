@@ -1,5 +1,6 @@
 use crate::dir_map::DirMap;
 use crate::{compare, listbackups, throw};
+use std::collections::HashMap;
 use std::fs::File;
 use std::process::ExitStatus;
 use std::sync::{Mutex, MutexGuard};
@@ -88,13 +89,51 @@ pub async fn load_backups(
   Ok(dir_map)
 }
 
+#[derive(Default)]
+pub struct BackupDirMaps(pub Mutex<HashMap<(String, String), DirMap<u64>>>);
+
+impl BackupDirMaps {
+  pub fn lock(&self) -> Result<MutexGuard<HashMap<(String, String), DirMap<u64>>>, String> {
+    match self.0.lock() {
+      Ok(mutex) => Ok(mutex),
+      Err(e) => throw!("Unable to lock backup list: {}", e),
+    }
+  }
+}
+
 #[command]
 pub async fn compare_backups<'a>(
   old: String,
   new: String,
+  refresh: bool,
   w: Window,
+  state: State<'_, BackupDirMaps>,
 ) -> Result<DirMap<u64>, String> {
+  let old_new = (old.clone(), new.clone());
+
+  // get cached dir_map
+  if !refresh {
+    let dir_maps = state.lock()?;
+    match dir_maps.get(&old_new) {
+      Some(dir_map) => {
+        return Ok(dir_map.clone());
+      }
+      None => {}
+    }
+  }
+
   full_disk_access(w).await?;
   let dir_map = compare::compare(&old, &new)?;
-  Ok(dir_map)
+  state.lock()?.insert(old_new, dir_map.clone());
+
+  Ok(dir_map.clone())
+}
+
+#[command]
+pub async fn cached_backups(
+  state: State<'_, BackupDirMaps>,
+) -> Result<Vec<(String, String)>, String> {
+  let dir_maps = state.lock()?;
+  let cached_paths = dir_maps.keys().map(|t| t.clone()).collect();
+  Ok(cached_paths)
 }

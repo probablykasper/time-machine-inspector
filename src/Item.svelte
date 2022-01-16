@@ -11,6 +11,7 @@
 
 <script lang="ts">
   import { createEventDispatcher } from 'svelte'
+  import { cachedBackups } from './page'
   import type { DirMap } from './page'
 
   export let map: DirMap
@@ -19,6 +20,7 @@
   export let dir: string
   export let fullPath: string
   $: isFolder = map[fullPath] !== undefined
+  $: isCached = $cachedBackups.includes(fullPath)
 
   export let selectedPath: string
   export let open = true
@@ -43,6 +45,7 @@
 <div
   class="item"
   class:open
+  class:is-cached={isCached}
   on:click={itemClick}
   style={`padding-left: ${14 * indentLevel + 10}px`}
   class:selected={selectedPath === fullPath + '/' + name}>
@@ -76,10 +79,12 @@
     padding: 4px 0px
     box-sizing: border-box
     width: 100%
-    &.selected
-      background-color: hsla(216, 70%, 70%, 0.2)
-    &.open svg
-      transform: rotate(90deg)
+  .selected
+    background-color: hsla(216, 70%, 70%, 0.2)
+  .open svg
+    transform: rotate(90deg)
+  .is-cached
+    font-weight: 600
   svg
     fill: hsla(216, 50%, 70%, 0.75)
     width: 10px

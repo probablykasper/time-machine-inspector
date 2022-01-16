@@ -56,16 +56,16 @@
   {/if}
   {name}
   <div class="size">
-    {#if size < 1_000}
+    {#if size < 1000}
       {size}
-    {:else if size < 1_000_000}
-      {size / 1_000} KB
-    {:else if size < 1_000_000_000}
-      {size / 1_000_000} MB
-    {:else if size < 1_000_000_000_000}
-      {size / 1_000_000_000} GB
-    {:else if size < 1_000_000_000_000_000}
-      {size / 1_000_000_000_000} TB
+    {:else if size < 1000000}
+      {size / 1000} KB
+    {:else if size < 1000000000}
+      {size / 1000000} MB
+    {:else if size < 1000000000000}
+      {size / 1000000000} GB
+    {:else if size < 1000000000000000}
+      {size / 1000000000000} TB
     {/if}
   </div>
 </div>
@@ -105,7 +105,7 @@
     fill: hsla(216, 50%, 70%, 0.75)
     width: 10px
     height: 10px
-    margin-right: 1px
+    margin-right: 4px
   .size
     display: inline-block
     margin-left: auto

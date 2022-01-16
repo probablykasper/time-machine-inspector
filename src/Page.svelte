@@ -1,7 +1,7 @@
 <script lang="ts">
   import { runCmd } from './general'
   import PageItem, { ItemClickEvent } from './PageItem.svelte'
-  import { backups, page } from './page'
+  import { backups, page, loadCachedBackups, cachedBackups } from './page'
 
   let selectedPath = ''
 
@@ -14,22 +14,31 @@
   let dirMap: DirMap | null = null
 
   let loading = false
-  async function compare() {
+  async function compare(autoLoad = false) {
     if (loading || $backups === null) {
       return
     }
     const fullPathParent = $page.fullPath.substring(0, $page.fullPath.lastIndexOf('/'))
     const dir = $backups.dirs[fullPathParent][$page.name]
     if (dir !== undefined) {
-      loading = true
+      if (!autoLoad) {
+        loading = true
+      }
       const result = (await runCmd('compare_backups', {
         old: $page.prevPath,
         new: $page.fullPath,
-      })) as { map: DirMap }
+        refresh: false,
+      })) as { map: DirMap; cached_paths: [string, string][] }
       dirMap = result.map
-      console.log(dirMap)
+      loadCachedBackups()
+      console.log(result)
     }
     loading = false
+  }
+
+  // auto load
+  $: if ($cachedBackups.includes($page.fullPath)) {
+    compare(true)
   }
 
   function itemClick(e: ItemClickEvent) {
@@ -45,7 +54,6 @@
 {#if $page.fullPath === ''}
   <main class="empty">
     <p>You can open a backup from the sidebar when it's loaded</p>
-    <button on:click={compare}>Load</button>
   </main>
 {:else}
   <main>

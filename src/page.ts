@@ -13,13 +13,43 @@ export type DirContent = {
   [name: string]: null
 }
 
-export const backups = writable<Backups | null>(null)
+export const backups = (() => {
+  const store = writable<Backups | null>(null)
+  return {
+    subscribe: store.subscribe,
+    set: (value: Backups | null) => {
+      store.set(value)
+      loadCachedBackups()
+    },
+  }
+})()
 
-export const page = writable({
-  fullPath: '',
-  name: '',
-  prevPath: '',
-})
+export const cachedBackups = writable([] as string[])
+export async function loadCachedBackups() {
+  const result = (await runCmd('cached_backups')) as [string, string][]
+  const newOnly = result.map((b) => b[1])
+  cachedBackups.set(newOnly)
+}
+
+type Page = {
+  fullPath: string
+  name: string
+  prevPath: string
+}
+export const page = (() => {
+  const store = writable<Page>({
+    fullPath: '',
+    name: '',
+    prevPath: '',
+  })
+  return {
+    subscribe: store.subscribe,
+    set: (value: Page) => {
+      store.set(value)
+      loadCachedBackups()
+    },
+  }
+})()
 
 export function close() {
   page.set({
