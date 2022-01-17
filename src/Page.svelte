@@ -2,6 +2,10 @@
   import { runCmd } from './general'
   import PageItem, { ItemClickEvent } from './PageItem.svelte'
   import { backups, page, loadCachedBackups, cachedBackups } from './page'
+  import Button from './lib/Button.svelte'
+  import ProgressBar from './lib/ProgressBar.svelte'
+  import { fade } from 'svelte/transition'
+  import { cubicInOut } from 'svelte/easing'
 
   let selectedPath = ''
 
@@ -24,6 +28,8 @@
       if (!autoLoad) {
         loading = true
       }
+      console.log($page)
+
       const result = (await runCmd('compare_backups', {
         old: $page.prevPath,
         new: $page.fullPath,
@@ -36,9 +42,11 @@
     loading = false
   }
 
-  // auto load
-  $: if ($cachedBackups.includes($page.fullPath)) {
-    compare(true)
+  $: autoLoad($page.fullPath)
+  function autoLoad(path: string) {
+    if ($cachedBackups.includes(path)) {
+      compare(true)
+    }
   }
 
   function itemClick(e: ItemClickEvent) {
@@ -58,35 +66,37 @@
 {:else}
   <main>
     <div class="bar">{$page.fullPath}</div>
-    {#if dirMap === null || dirMap[rootPath] === undefined}
-      <button on:click={() => compare()} class:disabled={loading}>
-        {#if loading}
-          Loading...
-        {:else}
-          Load
-        {/if}
-      </button>
-    {:else}
-      {#each Object.entries(dirMap[rootPath]) as [childName, size]}
-        <PageItem
-          map={dirMap}
-          {selectedPath}
-          name={childName}
-          {size}
-          fullPath={rootPath + '/' + childName}
-          on:click={itemClick} />
-      {/each}
-    {/if}
+    <div class="content">
+      {#if loading}
+        <div class="absolute center-align" transition:fade={{ duration: 500, easing: cubicInOut }}>
+          <ProgressBar />
+        </div>
+      {:else if dirMap === null || dirMap[rootPath] === undefined}
+        <div class="absolute center-align">
+          <Button disabled={loading} on:click={() => compare()}>Load</Button>
+        </div>
+      {:else}
+        {#each Object.entries(dirMap[rootPath]) as [childName, size]}
+          <PageItem
+            map={dirMap}
+            {selectedPath}
+            name={childName}
+            {size}
+            fullPath={rootPath + '/' + childName}
+            on:click={itemClick} />
+        {/each}
+      {/if}
+    </div>
   </main>
 {/if}
 
 <style lang="sass">
-  $easing: cubic-bezier(0.4, 0.0, 0.2, 1)
   main
     width: 100%
     height: 100%
     box-sizing: border-box
-    overflow: auto
+    display: flex
+    flex-direction: column
   main.empty
     display: flex
     align-items: center
@@ -94,32 +104,23 @@
     font-size: 14px
     padding: 30px
     text-align: center
+  .content
+    position: relative
+    overflow: auto
+    height: 100%
+    width: 100%
+  .absolute
+    position: absolute
+    top: 0px
+    left: 0px
+  .center-align
+    height: 100%
+    width: 100%
+    display: flex
+    align-items: center
+    justify-content: center
   .bar
     background-color: hsla(230, 80%, 90%, 0.1)
     font-size: 13px
     padding: 5px 10px
-  button
-    font-family: inherit
-    user-select: none
-    cursor: default
-    outline: none
-    box-sizing: border-box
-    padding: 7px 18px
-    text-align: center
-    font-size: 13px
-    margin: 15px
-    border: 1px solid hsla(230, 100%, 80%, 0.1)
-    border-radius: 5px
-    background-color: hsla(230, 80%, 75%, 0.2)
-    color: hsla(230, 100%, 90%, 0.8)
-    font-weight: 530
-    text-shadow: 0px 0.1em 0.8em hsla(230, 30%, 7%, 1)
-    transition: all 240ms $easing
-    &:focus
-      box-shadow: 0px 0px 0px 2px hsla(230, 100%, 80%, 0.5)
-    &.disabled, &:hover
-      font-weight: 600
-      letter-spacing: 0.05em
-    &.disabled, &:active
-      opacity: 0.75
 </style>
