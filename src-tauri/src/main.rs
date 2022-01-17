@@ -57,7 +57,7 @@ fn main() {
         .decorations(true)
         // .transparent(true)
         .always_on_top(false)
-        .inner_size(900.0, 600.0)
+        .inner_size(1000.0, 700.0)
         .min_inner_size(600.0, 250.0)
         .skip_taskbar(false)
         .fullscreen(false);
