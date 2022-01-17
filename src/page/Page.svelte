@@ -1,9 +1,9 @@
 <script lang="ts">
-  import { runCmd } from './general'
+  import { runCmd } from '../general'
   import PageItem, { ItemClickEvent } from './PageItem.svelte'
   import { backups, page, backupInfos } from './page'
-  import Button from './lib/Button.svelte'
-  import ProgressBar from './lib/ProgressBar.svelte'
+  import Button from '../lib/Button.svelte'
+  import ProgressBar from '../lib/ProgressBar.svelte'
 
   let selectedPath = ''
 
@@ -79,7 +79,8 @@
             name={childName}
             {size}
             fullPath={rootPath + '/' + childName}
-            on:click={itemClick} />
+            on:click={itemClick}
+          />
         {/each}
       {/if}
     </div>

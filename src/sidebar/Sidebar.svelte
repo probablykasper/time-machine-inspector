@@ -1,5 +1,5 @@
 <script lang="ts">
-  import type { Backups } from './page'
+  import type { Backups } from '../page/page'
   import SidebarItems from './SidebarItems.svelte'
 
   export let backups: Backups

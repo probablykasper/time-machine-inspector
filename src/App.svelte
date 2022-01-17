@@ -1,7 +1,7 @@
 <script lang="ts">
-  import Page from './Page.svelte'
-  import Sidebar from './Sidebar.svelte'
-  import { backups, close as closePage, loadBackups } from './page'
+  import Page from './page/Page.svelte'
+  import Sidebar from './sidebar/Sidebar.svelte'
+  import { backups, close as closePage, loadBackups } from './page/page'
   import { fade } from 'svelte/transition'
   import { cubicInOut } from 'svelte/easing'
   import ProgressBar from './lib/ProgressBar.svelte'

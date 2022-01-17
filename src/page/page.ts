@@ -1,5 +1,5 @@
 import { get, writable } from 'svelte/store'
-import { runCmd } from './general'
+import { runCmd } from '../general'
 
 export type Backups = {
   dirs: DirMap

@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { page, Backups, backupInfos, BackupInfo } from './page'
+  import { page, Backups, backupInfos, BackupInfo } from '../page/page'
 
   export let path: string
   export let backups: Backups
@@ -68,7 +68,7 @@
   }
 </script>
 
-{#each dir as item, i}
+{#each dir as item}
   <div
     class="item"
     data-load-state={getLoadState($backupInfos, item.prevPath, item.path)}
