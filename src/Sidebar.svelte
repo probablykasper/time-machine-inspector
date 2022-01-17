@@ -3,34 +3,32 @@
   import { page, Backups } from './page'
 
   export let backups: Backups
+  $: dir = Object.keys(backups.dirs[backups.rootPath]).sort()
 
   function sidebarClick(e: ItemClickEvent) {
     if (e.detail.isFolder) {
       e.detail.toggleChildren()
-    } else {
-      const paths = Object.keys(backups.dirs[e.detail.dir]).sort()
-      const backupIndex = paths.indexOf(e.detail.name)
-      if (backupIndex >= 1) {
-        let prevPathSeparator = e.detail.dir === '/' ? '' : '/'
-        $page = {
-          fullPath: e.detail.fullPath,
-          name: e.detail.name,
-          prevPath: e.detail.dir + prevPathSeparator + paths[backupIndex - 1],
-        }
+    } else if (e.detail.prevPath) {
+      $page = {
+        fullPath: e.detail.fullPath,
+        name: e.detail.name,
+        prevPath: e.detail.prevPath,
+        loading: false,
       }
     }
   }
 </script>
 
 <div class="content">
-  {#each Object.keys(backups.dirs[backups.rootPath]).sort() as child}
+  {#each dir as child, i}
     {#if backups.rootPath === '/'}
       <Item
         map={backups.dirs}
-        selectedPath={$page.fullPath + '/' + $page.name}
         name={child}
         dir="/"
         fullPath={'/' + child}
+        prevPath={i === 0 ? null : '/' + dir[i - 1]}
+        selectedPath={$page.fullPath + '/' + $page.name}
         on:click={sidebarClick} />
     {:else}
       <Item
@@ -38,6 +36,7 @@
         name={child}
         dir={backups.rootPath}
         fullPath={backups.rootPath + '/' + child}
+        prevPath={i === 0 ? null : backups.rootPath + '/' + dir[i - 1]}
         selectedPath={$page.fullPath + '/' + $page.name}
         on:click={sidebarClick} />
     {/if}

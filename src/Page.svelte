@@ -1,11 +1,9 @@
 <script lang="ts">
   import { runCmd } from './general'
   import PageItem, { ItemClickEvent } from './PageItem.svelte'
-  import { backups, page, loadCachedBackups, cachedBackups } from './page'
+  import { backups, page, backupInfos } from './page'
   import Button from './lib/Button.svelte'
   import ProgressBar from './lib/ProgressBar.svelte'
-  import { fade } from 'svelte/transition'
-  import { cubicInOut } from 'svelte/easing'
 
   let selectedPath = ''
 
@@ -17,35 +15,33 @@
   }
   let dirMap: DirMap | null = null
 
-  let loading = false
   async function compare(autoLoad = false) {
-    if (loading || $backups === null) {
+    if ($page.loading || $backups === null) {
       return
     }
     const fullPathParent = $page.fullPath.substring(0, $page.fullPath.lastIndexOf('/'))
     const dir = $backups.dirs[fullPathParent][$page.name]
     if (dir !== undefined) {
       if (!autoLoad) {
-        loading = true
+        $page.loading = true
       }
-      console.log($page)
-
-      const result = (await runCmd('compare_backups', {
+      const result = (await runCmd('get_backup', {
         old: $page.prevPath,
         new: $page.fullPath,
         refresh: false,
       })) as { map: DirMap; cached_paths: [string, string][] }
       dirMap = result.map
-      loadCachedBackups()
+      backupInfos.load()
       console.log(result)
     }
-    loading = false
   }
 
-  $: autoLoad($page.fullPath)
-  function autoLoad(path: string) {
-    if ($cachedBackups.includes(path)) {
-      compare(true)
+  $: autoLoad($page.prevPath, $page.fullPath)
+  function autoLoad(oldPath: string, newPath: string) {
+    for (const info of $backupInfos) {
+      if (info.old === oldPath && info.new === newPath) {
+        compare(true)
+      }
     }
   }
 
@@ -67,13 +63,13 @@
   <main>
     <div class="bar">{$page.fullPath}</div>
     <div class="content">
-      {#if loading}
-        <div class="absolute center-align" transition:fade={{ duration: 500, easing: cubicInOut }}>
+      {#if $page.loading}
+        <div class="absolute center-align">
           <ProgressBar />
         </div>
       {:else if dirMap === null || dirMap[rootPath] === undefined}
         <div class="absolute center-align">
-          <Button disabled={loading} on:click={() => compare()}>Load</Button>
+          <Button on:click={() => compare()}>Load</Button>
         </div>
       {:else}
         {#each Object.entries(dirMap[rootPath]) as [childName, size]}

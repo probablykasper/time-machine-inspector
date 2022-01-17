@@ -3,6 +3,7 @@
     name: string
     dir: string
     fullPath: string
+    prevPath: string | null
     isFolder: boolean
     toggleChildren: () => void
   }
@@ -11,16 +12,37 @@
 
 <script lang="ts">
   import { createEventDispatcher } from 'svelte'
-  import { cachedBackups } from './page'
-  import type { DirMap } from './page'
+  import { backupInfos } from './page'
+  import type { DirMap, BackupInfo } from './page'
 
   export let map: DirMap
 
   export let name: string
   export let dir: string
   export let fullPath: string
+  export let prevPath: string | null
   $: isFolder = map[fullPath] !== undefined
-  $: isCached = $cachedBackups.includes(fullPath)
+
+  let loadState = 0
+  function updateLoadState(backupInfos: BackupInfo[]) {
+    for (const info of backupInfos) {
+      if (info.old === prevPath && info.new === fullPath) {
+        if (info.loading) {
+          loadState = 1
+        } else {
+          loadState = 2
+        }
+      }
+    }
+  }
+  $: updateLoadState($backupInfos)
+
+  let children: string[] = []
+  $: if (isFolder) {
+    children = Object.keys(map[fullPath]).sort()
+  } else {
+    children = []
+  }
 
   export let selectedPath: string
   export let open = true
@@ -33,6 +55,7 @@
     dispatch('click', {
       name,
       fullPath,
+      prevPath,
       dir,
       isFolder,
       toggleChildren: () => {
@@ -45,7 +68,8 @@
 <div
   class="item"
   class:open
-  class:is-cached={isCached}
+  class:loading={loadState === 1}
+  class:loaded={loadState === 2}
   on:click={itemClick}
   style={`padding-left: ${14 * indentLevel + 10}px`}
   class:selected={selectedPath === fullPath + '/' + name}>
@@ -57,12 +81,13 @@
 </div>
 <div class="children">
   {#if open && isFolder}
-    {#each Object.keys(map[fullPath]).sort() as child}
+    {#each children as child, i}
       <svelte:self
         {map}
         name={child}
         dir={fullPath}
         fullPath={fullPath + '/' + child}
+        prevPath={i === 0 ? null : fullPath + '/' + children[i - 1]}
         {selectedPath}
         on:click
         indentLevel={indentLevel + 1} />
@@ -71,6 +96,7 @@
 </div>
 
 <style lang="sass">
+  $ease-md: cubic-bezier(0.4, 0.0, 0.2, 1)
   .item
     font-size: 14px
     color: hsla(216, 50%, 70%, 0.75)
@@ -79,11 +105,21 @@
     padding: 4px 0px
     box-sizing: border-box
     width: 100%
+
+  .loading:not(.selected)
+    animation: flash 1s $ease-md infinite alternate
+
+  @keyframes flash
+    0%
+      color: hsla(216, 50%, 70%, 0.5)
+    100%
+      color: hsla(216, 50%, 70%, 0.9)
+
   .selected
     background-color: hsla(216, 70%, 70%, 0.2)
   .open svg
     transform: rotate(90deg)
-  .is-cached
+  .loaded
     font-weight: 600
     color: hsla(216, 50%, 80%, 0.9)
   svg

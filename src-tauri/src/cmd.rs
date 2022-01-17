@@ -1,5 +1,6 @@
 use crate::dir_map::DirMap;
 use crate::{compare, listbackups, throw};
+use serde::Serialize;
 use std::collections::HashMap;
 use std::fs::File;
 use std::process::ExitStatus;
@@ -68,7 +69,7 @@ impl BackupList {
 }
 
 #[command]
-pub async fn load_backups(
+pub async fn load_backup_list(
   refresh: bool,
   w: Window,
   state: State<'_, BackupList>,
@@ -89,11 +90,20 @@ pub async fn load_backups(
   Ok(dir_map)
 }
 
-#[derive(Default)]
-pub struct BackupDirMaps(pub Mutex<HashMap<(String, String), DirMap<u64>>>);
+#[derive(Serialize, Clone)]
+pub struct LoadedBackup {
+  pub old: String,
+  pub new: String,
+  pub map: DirMap<u64>,
+  pub loading: bool,
+}
+pub type LoadedBackupsMap = HashMap<(String, String), LoadedBackup>;
 
-impl BackupDirMaps {
-  pub fn lock(&self) -> Result<MutexGuard<HashMap<(String, String), DirMap<u64>>>, String> {
+#[derive(Default)]
+pub struct LoadedBackups(pub Mutex<LoadedBackupsMap>);
+
+impl LoadedBackups {
+  pub fn lock(&self) -> Result<MutexGuard<LoadedBackupsMap>, String> {
     match self.0.lock() {
       Ok(mutex) => Ok(mutex),
       Err(e) => throw!("Unable to lock backup list: {}", e),
@@ -101,39 +111,76 @@ impl BackupDirMaps {
   }
 }
 
+#[derive(Serialize, Clone)]
+pub struct BackupInfo {
+  pub old: String,
+  pub new: String,
+  pub loading: bool,
+}
+
 #[command]
-pub async fn compare_backups<'a>(
+pub async fn backups_info(state: State<'_, LoadedBackups>) -> Result<Vec<BackupInfo>, String> {
+  let map = state.lock()?;
+  let info = map.values().map(|b| BackupInfo {
+    old: b.old.clone(),
+    new: b.new.clone(),
+    loading: b.loading,
+  });
+  Ok(info.collect())
+}
+
+#[command]
+pub async fn get_backup<'a>(
   old: String,
   new: String,
   refresh: bool,
   w: Window,
-  state: State<'_, BackupDirMaps>,
+  state: State<'_, LoadedBackups>,
 ) -> Result<DirMap<u64>, String> {
   let old_new = (old.clone(), new.clone());
 
   // get cached dir_map
   if !refresh {
-    let dir_maps = state.lock()?;
-    match dir_maps.get(&old_new) {
-      Some(dir_map) => {
-        return Ok(dir_map.clone());
+    let loaded_backups = state.lock()?;
+    match loaded_backups.get(&old_new) {
+      Some(loaded_backup) => {
+        return Ok(loaded_backup.map.clone());
       }
       None => {}
     }
   }
 
+  {
+    let mut loaded_backups = state.lock()?;
+    match loaded_backups.get_mut(&old_new) {
+      Some(loaded_backup) => {
+        if (loaded_backup).loading {
+          throw!("Already loading backup");
+        }
+      }
+      None => {
+        let backup = LoadedBackup {
+          old: old.clone(),
+          new: new.clone(),
+          map: DirMap::new(),
+          loading: true,
+        };
+        loaded_backups.insert(old_new.clone(), backup);
+      }
+    }
+  }
+
   full_disk_access(w).await?;
   let dir_map = compare::compare(&old, &new)?;
-  state.lock()?.insert(old_new, dir_map.clone());
 
-  Ok(dir_map.clone())
-}
+  let mut loaded_backups = state.lock()?;
+  let backup = LoadedBackup {
+    old,
+    new,
+    map: dir_map.clone(),
+    loading: false,
+  };
+  loaded_backups.insert(old_new, backup);
 
-#[command]
-pub async fn cached_backups(
-  state: State<'_, BackupDirMaps>,
-) -> Result<Vec<(String, String)>, String> {
-  let dir_maps = state.lock()?;
-  let cached_paths = dir_maps.keys().map(|t| t.clone()).collect();
-  Ok(cached_paths)
+  Ok(dir_map)
 }

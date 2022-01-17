@@ -1,4 +1,4 @@
-import { writable } from 'svelte/store'
+import { get, writable } from 'svelte/store'
 import { runCmd } from './general'
 
 export type Backups = {
@@ -19,34 +19,59 @@ export const backups = (() => {
     subscribe: store.subscribe,
     set: (value: Backups | null) => {
       store.set(value)
-      loadCachedBackups()
+      backupInfos.load()
     },
   }
 })()
 
-export const cachedBackups = writable([] as string[])
-export async function loadCachedBackups() {
-  const result = (await runCmd('cached_backups')) as [string, string][]
-  const newOnly = result.map((b) => b[1])
-  cachedBackups.set(newOnly)
+export type BackupInfo = {
+  old: string
+  new: string
+  loading: boolean
 }
+export const backupInfos = (() => {
+  const store = writable([] as BackupInfo[])
+  return {
+    subscribe: store.subscribe,
+    load: async () => {
+      const result = (await runCmd('backups_info')) as BackupInfo[]
+      const $page = get(page)
+      result.find((info) => {
+        if (info.old === $page.prevPath && info.new === $page.fullPath) {
+          if ($page.loading !== info.loading) {
+            page.set_loading(info.loading)
+          }
+        }
+      })
+      store.set(result)
+    },
+  }
+})()
 
 type Page = {
   fullPath: string
   name: string
   prevPath: string
+  loading: boolean
 }
 export const page = (() => {
   const store = writable<Page>({
     fullPath: '',
     name: '',
     prevPath: '',
+    loading: false,
   })
   return {
     subscribe: store.subscribe,
     set: (value: Page) => {
       store.set(value)
-      loadCachedBackups()
+      backupInfos.load()
+    },
+    set_loading: (value: boolean) => {
+      store.update(($page) => {
+        $page.loading = value
+        return $page
+      })
     },
   }
 })()
@@ -56,12 +81,13 @@ export function close() {
     fullPath: '',
     name: '',
     prevPath: '',
+    loading: false,
   })
   backups.set(null)
 }
 
 export async function loadBackups(refresh = false) {
-  const result = (await runCmd('load_backups', { refresh })) as { map: DirMap }
+  const result = (await runCmd('load_backup_list', { refresh })) as { map: DirMap }
   console.log(result)
   const map = result.map
 

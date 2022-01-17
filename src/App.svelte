@@ -17,8 +17,6 @@
     closePage()
     await loadBackups(refresh)
     let timeRemaining = Math.max(minEndTime - Date.now())
-    console.log(timeRemaining)
-
     await new Promise((resolve) => {
       setTimeout(resolve, timeRemaining)
     })

@@ -42,12 +42,12 @@ fn main() {
 
   tauri::Builder::default()
     .manage(cmd::BackupList(Default::default()))
-    .manage(cmd::BackupDirMaps(Default::default()))
+    .manage(cmd::LoadedBackups(Default::default()))
     .invoke_handler(tauri::generate_handler![
       error_popup,
-      cmd::load_backups,
-      cmd::compare_backups,
-      cmd::cached_backups,
+      cmd::load_backup_list,
+      cmd::get_backup,
+      cmd::backups_info,
     ])
     .create_window("main", WindowUrl::default(), |win, webview| {
       let win = win
