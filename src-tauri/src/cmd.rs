@@ -129,6 +129,11 @@ pub async fn backups_info(state: State<'_, LoadedBackups>) -> Result<Vec<BackupI
   Ok(info.collect())
 }
 
+async fn do_compare(old: &str, new: &str, w: Window) -> Result<DirMap<u64>, String> {
+  full_disk_access(w).await?;
+  Ok(compare::compare(&old, &new)?)
+}
+
 #[command]
 pub async fn get_backup<'a>(
   old: String,
@@ -170,17 +175,22 @@ pub async fn get_backup<'a>(
     }
   }
 
-  full_disk_access(w).await?;
-  let dir_map = compare::compare(&old, &new)?;
-
-  let mut loaded_backups = state.lock()?;
-  let backup = LoadedBackup {
-    old,
-    new,
-    map: dir_map.clone(),
-    loading: false,
-  };
-  loaded_backups.insert(old_new, backup);
-
-  Ok(dir_map)
+  match do_compare(&old, &new, w).await {
+    Ok(dir_map) => {
+      let mut loaded_backups = state.lock()?;
+      let backup = LoadedBackup {
+        old,
+        new,
+        map: dir_map.clone(),
+        loading: false,
+      };
+      loaded_backups.insert(old_new, backup);
+      return Ok(dir_map);
+    }
+    Err(e) => {
+      let mut loaded_backups = state.lock()?;
+      loaded_backups.remove(&old_new);
+      return Err(e);
+    }
+  }
 }
