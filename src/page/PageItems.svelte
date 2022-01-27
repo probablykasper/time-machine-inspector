@@ -38,12 +38,29 @@
     })
   }
 
+  function bodyKeydown(e: KeyboardEvent) {
+    if (e.key === 'ArrowRight' || e.key === 'ArrowLeft') {
+      for (const item of dir) {
+        if (item.path === $selectedPath) {
+          if (e.key === 'ArrowRight') {
+            $pageMap[path][item.name].isOpen = true
+          } else if (e.key === 'ArrowLeft') {
+            $pageMap[path][item.name].isOpen = false
+          }
+        }
+      }
+      e.preventDefault()
+    }
+  }
+
   function openOrClose(name: string) {
     $pageMap[path][name].isOpen = !$pageMap[path][name].isOpen
   }
 
   export let indentLevel = 0
 </script>
+
+<svelte:body on:keydown={bodyKeydown} />
 
 {#each dir as item}
   <div
