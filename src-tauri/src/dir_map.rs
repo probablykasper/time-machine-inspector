@@ -1,3 +1,4 @@
+use crate::cmd::LoadedBackupItem;
 use crate::{compare, throw};
 use serde::Serialize;
 use std::collections::hash_map::Entry;
@@ -61,7 +62,7 @@ impl DirMap<()> {
   }
 }
 
-impl DirMap<u64> {
+impl DirMap<LoadedBackupItem> {
   pub fn from_comparison(comparison: compare::Comparison) -> Result<Self, String> {
     let mut dir_map = DirMap::new();
 
@@ -77,8 +78,10 @@ impl DirMap<u64> {
         if ancestor == Path::new("/") {
           break;
         }
-        let item = dir_map.item_entry(ancestor)?.or_insert(0);
-        *item += new_item.size;
+        let item = dir_map
+          .item_entry(ancestor)?
+          .or_insert(LoadedBackupItem { size: 0 });
+        item.size += new_item.size;
       }
     }
     Ok(dir_map)

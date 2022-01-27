@@ -23,7 +23,7 @@
 
   $: dir = getDir(backups, path)
   function getDir(backups: Backups, path: string): Item[] {
-    let names = Object.keys(backups.dirs[path]).sort()
+    const names = Object.keys(backups.dirs[path]).sort()
     let prevChildPath = null as string | null
     return names.map((name) => {
       const childPath = getChildPath(path, name)

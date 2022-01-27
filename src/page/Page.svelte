@@ -1,19 +1,9 @@
 <script lang="ts">
   import { runCmd } from '../general'
-  import PageItem, { ItemClickEvent } from './PageItem.svelte'
-  import { backups, page, backupInfos } from './page'
+  import PageItems from './PageItems.svelte'
+  import { backups, page, backupInfos, pageMap, PageMap } from './page'
   import Button from '../lib/Button.svelte'
   import ProgressBar from '../lib/ProgressBar.svelte'
-
-  let selectedPath = ''
-
-  type DirItem = {
-    [key: string]: number
-  }
-  type DirMap = {
-    [key: string]: DirItem
-  }
-  let dirMap: DirMap | null = null
 
   async function compare(autoLoad = false) {
     if ($page.loading || $backups === null) {
@@ -29,12 +19,32 @@
         old: $page.prevPath,
         new: $page.fullPath,
         refresh: false,
-      })) as { map: DirMap; cached_paths: [string, string][] }
-      dirMap = result.map
+      })) as { map: PageMap; cached_paths: [string, string][] }
+      $pageMap = result.map
       backupInfos.load()
       console.log(result)
     }
   }
+
+  // $: pageItems = getPageItems(dirMap)
+  // function getPageItems(dirMap: DirMap | null) {
+  //   if (dirMap === null) {
+  //     return null
+  //   }
+  //   const items = {}
+  //   for (const [dir, items] of Object.entries(dirMap)) {
+  //     console.log(dir, items)
+  //   }
+  //   return items
+  //   // for (const [path, items] of Object.entries(dirMap)) {
+  //   //   const items = {}
+  //   //   for (const item of dirs) {
+  //   //     items.push({
+  //   //       size: item,
+  //   //     })
+  //   //   }
+  //   // }
+  // }
 
   $: autoLoad($page.prevPath, $page.fullPath)
   function autoLoad(oldPath: string, newPath: string) {
@@ -44,15 +54,6 @@
       }
     }
   }
-
-  function itemClick(e: ItemClickEvent) {
-    if (e.detail.isFolder) {
-      e.detail.toggleChildren()
-    }
-    selectedPath = e.detail.fullPath + '/' + e.detail.name
-  }
-
-  $: rootPath = $page.fullPath
 </script>
 
 {#if $page.fullPath === ''}
@@ -67,21 +68,12 @@
         <div class="absolute center-align">
           <ProgressBar />
         </div>
-      {:else if dirMap === null || dirMap[rootPath] === undefined}
+      {:else if $pageMap === null || $pageMap[$page.fullPath] === undefined}
         <div class="absolute center-align">
           <Button on:click={() => compare()}>Load</Button>
         </div>
       {:else}
-        {#each Object.entries(dirMap[rootPath]) as [childName, size]}
-          <PageItem
-            map={dirMap}
-            {selectedPath}
-            name={childName}
-            {size}
-            fullPath={rootPath + '/' + childName}
-            on:click={itemClick}
-          />
-        {/each}
+        <PageItems path={$page.fullPath} />
       {/if}
     </div>
   </main>

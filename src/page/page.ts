@@ -48,6 +48,21 @@ export const backupInfos = (() => {
   }
 })()
 
+export const selectedPath = writable(null as string | null)
+
+export type PageMap = {
+  [name: string]: PageItems
+}
+export type PageItems = {
+  [name: string]: PageItem
+}
+export type PageItem = {
+  size: number
+  isOpen?: boolean
+}
+
+export const pageMap = writable({} as PageMap)
+
 type Page = {
   fullPath: string
   name: string

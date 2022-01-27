@@ -91,10 +91,15 @@ pub async fn load_backup_list(
 }
 
 #[derive(Serialize, Clone)]
+pub struct LoadedBackupItem {
+  pub size: u64,
+}
+
+#[derive(Serialize, Clone)]
 pub struct LoadedBackup {
   pub old: String,
   pub new: String,
-  pub map: DirMap<u64>,
+  pub map: DirMap<LoadedBackupItem>,
   pub loading: bool,
 }
 pub type LoadedBackupsMap = HashMap<(String, String), LoadedBackup>;
@@ -129,7 +134,7 @@ pub async fn backups_info(state: State<'_, LoadedBackups>) -> Result<Vec<BackupI
   Ok(info.collect())
 }
 
-async fn do_compare(old: &str, new: &str, w: Window) -> Result<DirMap<u64>, String> {
+async fn do_compare(old: &str, new: &str, w: Window) -> Result<DirMap<LoadedBackupItem>, String> {
   full_disk_access(w).await?;
   Ok(compare::compare(&old, &new)?)
 }
@@ -141,7 +146,7 @@ pub async fn get_backup<'a>(
   refresh: bool,
   w: Window,
   state: State<'_, LoadedBackups>,
-) -> Result<DirMap<u64>, String> {
+) -> Result<DirMap<LoadedBackupItem>, String> {
   let old_new = (old.clone(), new.clone());
 
   // get cached dir_map

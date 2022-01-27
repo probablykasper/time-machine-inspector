@@ -1,4 +1,4 @@
-use crate::cmd::check_cmd_success;
+use crate::cmd::{check_cmd_success, LoadedBackupItem};
 use crate::dir_map::DirMap;
 use crate::{reset_dur, throw};
 use plist::Value;
@@ -122,7 +122,7 @@ fn deserialize_value<T: DeserializeOwned>(value: &Value) -> Result<T, String> {
   Ok(change)
 }
 
-pub fn compare(old: &str, new: &str) -> Result<DirMap<u64>, String> {
+pub fn compare(old: &str, new: &str) -> Result<DirMap<LoadedBackupItem>, String> {
   let mut anchor = Instant::now();
 
   let mut cmd = Command::new("tmutil")
