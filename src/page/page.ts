@@ -103,7 +103,7 @@ export function close() {
 
 export async function loadBackups(refresh = false) {
   const result = (await runCmd('load_backup_list', { refresh })) as { map: DirMap }
-  console.log(result)
+  console.log('Loaded backups', result)
   const map = result.map
 
   let rootPath = '/'

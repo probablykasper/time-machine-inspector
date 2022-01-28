@@ -1,4 +1,6 @@
 <script lang="ts">
+  import { createEventDispatcher, SvelteComponent } from 'svelte'
+
   import { PageMap, pageMap, selectedPath } from './page'
 
   export let path: string
@@ -38,23 +40,82 @@
     })
   }
 
-  function bodyKeydown(e: KeyboardEvent) {
-    if (e.key === 'ArrowRight' || e.key === 'ArrowLeft') {
-      for (const item of dir) {
-        if (item.path === $selectedPath) {
-          if (e.key === 'ArrowRight') {
-            $pageMap[path][item.name].isOpen = true
-          } else if (e.key === 'ArrowLeft') {
-            $pageMap[path][item.name].isOpen = false
-          }
+  const dispatch = createEventDispatcher()
+
+  let itemChildren: SvelteComponent[] = []
+
+  export function selectFirst() {
+    $selectedPath = dir[0].path
+  }
+  export function selectLast() {
+    if (dir[dir.length - 1].isOpen) {
+      itemChildren[dir.length - 1].selectLast()
+    } else {
+      $selectedPath = dir[dir.length - 1].path
+    }
+  }
+  function selectUp(i: number) {
+    if (i === 0) {
+      dispatch('selectUp')
+    } else if (dir[i - 1] && dir[i - 1].isOpen) {
+      itemChildren[i - 1].selectLast()
+    } else if (dir[i - 1]) {
+      $selectedPath = dir[i - 1].path
+    }
+  }
+  function selectDown(i: number) {
+    if (dir[i].isOpen) {
+      itemChildren[i].selectFirst()
+    } else if (i < dir.length - 1) {
+      $selectedPath = dir[i + 1].path
+    } else {
+      dispatch('selectDown')
+    }
+  }
+  function onSelectDown(i: number) {
+    if (i < dir.length - 1) {
+      $selectedPath = dir[i + 1].path
+    } else {
+      dispatch('selectDown')
+    }
+  }
+
+  async function handleArrowKey(e: KeyboardEvent) {
+    for (let i = 0; i < dir.length; i++) {
+      const item = dir[i]
+      if (item.path === $selectedPath) {
+        e.stopImmediatePropagation()
+        if (e.key === 'ArrowRight') {
+          $pageMap[path][item.name].isOpen = true
+        } else if (e.key === 'ArrowLeft') {
+          $pageMap[path][item.name].isOpen = false
+        } else if (e.key === 'ArrowUp') {
+          selectUp(i)
+        } else if (e.key === 'ArrowDown') {
+          selectDown(i)
         }
+        break
       }
+    }
+  }
+  function bodyKeydown(e: KeyboardEvent) {
+    console.log('bodyKeydown')
+
+    if (
+      e.key === 'ArrowLeft' ||
+      e.key === 'ArrowRight' ||
+      e.key === 'ArrowUp' ||
+      e.key === 'ArrowDown'
+    ) {
+      handleArrowKey(e)
       e.preventDefault()
     }
   }
 
-  function openOrClose(name: string) {
-    $pageMap[path][name].isOpen = !$pageMap[path][name].isOpen
+  function openOrClose(item: Item) {
+    if (item.isFolder) {
+      $pageMap[path][item.name].isOpen = !$pageMap[path][item.name].isOpen
+    }
   }
 
   export let indentLevel = 0
@@ -62,22 +123,26 @@
 
 <svelte:body on:keydown={bodyKeydown} />
 
-{#each dir as item}
+{#each dir as item, i}
   <div
     class="item"
     class:open={item.isOpen}
     class:selected={$selectedPath === item.path}
     style={`padding-left: ${14 * indentLevel + 2}px`}
-    on:click={() => ($selectedPath = item.path)}
-    on:dblclick={() => openOrClose(item.name)}
+    on:mousedown={() => ($selectedPath = item.path)}
+    on:click={() => openOrClose(item)}
   >
-    {#if $pageMap && $pageMap[item.path]}
-      <div class="arrow" on:click|stopPropagation={() => openOrClose(item.name)}>
+    <div
+      class="arrow"
+      on:mousedown|stopPropagation={() => openOrClose(item)}
+      on:click|stopPropagation
+    >
+      {#if $pageMap && $pageMap[item.path]}
         <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"
           ><path d="M21 12l-18 12v-24z" /></svg
         >
-      </div>
-    {/if}
+      {/if}
+    </div>
     {item.name}
     <div class="size">
       {#if item.size < 1000}
@@ -95,7 +160,13 @@
   </div>
   <div class="children">
     {#if item.isOpen}
-      <svelte:self path={item.path} indentLevel={indentLevel + 1} />
+      <svelte:self
+        bind:this={itemChildren[i]}
+        path={item.path}
+        indentLevel={indentLevel + 1}
+        on:selectUp={() => ($selectedPath = item.path)}
+        on:selectDown={() => onSelectDown(i)}
+      />
     {/if}
   </div>
 {/each}
@@ -119,7 +190,6 @@
       transform: rotate(90deg)
   .arrow
     padding: 5px
-    margin-right: 4px
     width: 10px
     height: 10px
     display: flex

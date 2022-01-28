@@ -22,29 +22,9 @@
       })) as { map: PageMap; cached_paths: [string, string][] }
       $pageMap = result.map
       backupInfos.load()
-      console.log(result)
+      console.log('Page items', result)
     }
   }
-
-  // $: pageItems = getPageItems(dirMap)
-  // function getPageItems(dirMap: DirMap | null) {
-  //   if (dirMap === null) {
-  //     return null
-  //   }
-  //   const items = {}
-  //   for (const [dir, items] of Object.entries(dirMap)) {
-  //     console.log(dir, items)
-  //   }
-  //   return items
-  //   // for (const [path, items] of Object.entries(dirMap)) {
-  //   //   const items = {}
-  //   //   for (const item of dirs) {
-  //   //     items.push({
-  //   //       size: item,
-  //   //     })
-  //   //   }
-  //   // }
-  // }
 
   $: autoLoad($page.prevPath, $page.fullPath)
   function autoLoad(oldPath: string, newPath: string) {

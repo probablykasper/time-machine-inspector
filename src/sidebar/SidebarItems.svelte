@@ -56,7 +56,7 @@
     if (item.isFolder) {
       item.show = !item.show
     } else if (item.prevPath) {
-      console.log(item)
+      console.log('Open', item)
 
       $page = {
         fullPath: item.path,
