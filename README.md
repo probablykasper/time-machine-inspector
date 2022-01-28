@@ -5,7 +5,7 @@
 <p align="center">
   Find out what's hogging up your backups
   <br/>
-  <a href="https://github.com/probablykasper/kadium/releases"><b>Download for Mac</b></a>
+  <a href="https://github.com/probablykasper/time-machine-inspector/releases"><b>Download for Mac</b></a>
 </p>
 <br/>
 
