@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="./assets/logo.png" width="80">
+  <img src="./assets/Logo.png" width="80">
 </p>
 <h3 align="center">Time Machine Inspector</h3>
 <p align="center">
