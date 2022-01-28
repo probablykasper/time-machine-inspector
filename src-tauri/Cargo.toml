@@ -2,9 +2,6 @@
 name = "time-machine-inspector"
 version = "1.0.0"
 description = "A Tauri App"
-authors = ["you"]
-license = ""
-repository = ""
 default-run = "time-machine-inspector"
 edition = "2018"
 build = "src/build.rs"
