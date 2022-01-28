@@ -55,7 +55,7 @@
   function itemClick(item: Item) {
     if (item.isFolder) {
       item.show = !item.show
-    } else if (item.prevPath) {
+    } else if (item.prevPath && $page.fullPath !== item.path) {
       console.log('Open', item)
 
       $page = {

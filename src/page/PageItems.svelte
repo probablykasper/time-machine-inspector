@@ -80,11 +80,6 @@
     }
   }
 
-  function closeFolder(item: Item) {
-    $pageMap[path][item.name].isOpen = false
-    $selectedPath = item.path
-  }
-
   async function handleArrowKey(e: KeyboardEvent) {
     for (let i = 0; i < dir.length; i++) {
       const item = dir[i]
@@ -95,7 +90,7 @@
         } else if (e.key === 'ArrowLeft' && $pageMap[path][item.name].isOpen) {
           $pageMap[path][item.name].isOpen = false
         } else if (e.key === 'ArrowLeft' && !$pageMap[path][item.name].isOpen) {
-          dispatch('closeFolder')
+          selectUp(0)
         } else if (e.key === 'ArrowUp') {
           selectUp(i)
         } else if (e.key === 'ArrowDown') {
@@ -173,7 +168,6 @@
         indentLevel={indentLevel + 1}
         on:selectUp={() => ($selectedPath = item.path)}
         on:selectDown={() => onSelectDown(i)}
-        on:closeFolder={() => closeFolder(item)}
       />
     {/if}
   </div>
