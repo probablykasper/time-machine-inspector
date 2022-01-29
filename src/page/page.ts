@@ -1,9 +1,11 @@
+import { invoke } from '@tauri-apps/api/tauri'
 import { get, writable } from 'svelte/store'
-import { runCmd } from '../general'
+import { popup, runCmd } from '../general'
 
 export type Backups = {
   dirs: DirMap
   rootPath: string
+  status: string
 }
 export type DirMap = {
   '/': DirContent
@@ -102,7 +104,14 @@ export function close() {
 }
 
 export async function loadBackups(refresh = false) {
-  const result = (await runCmd('load_backup_list', { refresh })) as { map: DirMap }
+  const result = (await invoke('load_backup_list', { refresh }).catch((msg) => {
+    if (msg.trim() === 'tmutil error 1:\nNo machine directory found for host.') {
+      return { map: { '/': [] }, status: 'No backups found' }
+    } else {
+      popup(msg)
+      throw msg
+    }
+  })) as { map: DirMap; status?: string }
   console.log('Loaded backups', result)
   const map = result.map
 
@@ -126,5 +135,6 @@ export async function loadBackups(refresh = false) {
   backups.set({
     dirs: result.map,
     rootPath,
+    status: result.status || '',
   })
 }
