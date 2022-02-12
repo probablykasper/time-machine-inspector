@@ -3,12 +3,14 @@
   windows_subsystem = "windows"
 )]
 
+use regex::Regex;
+use std::collections::HashMap;
 use std::thread;
 use std::time::Instant;
 use tauri::api::{dialog, shell};
 use tauri::{
-  command, CustomMenuItem, Manager, Menu, MenuEntry, MenuItem, Submenu, Window, WindowBuilder,
-  WindowUrl,
+  command, scope, CustomMenuItem, Manager, Menu, MenuEntry, MenuItem, Submenu, Window,
+  WindowBuilder, WindowUrl,
 };
 
 mod cmd;
@@ -53,7 +55,6 @@ fn main() {
       let win = win
         .title("Time Machine Inspector")
         .resizable(true)
-        .transparent(false)
         .decorations(true)
         // .transparent(true)
         .always_on_top(false)
@@ -123,11 +124,12 @@ fn main() {
       let event_name = event.menu_item_id();
       match event_name {
         "Learn More" => {
-          shell::open(
-            "https://github.com/probablykasper/time-machine-inspector".to_string(),
-            None,
-          )
-          .unwrap();
+          let shell_scope = scope::ShellScope::new(scope::ShellScopeConfig {
+            open: Some(Regex::new("^https?://").unwrap()),
+            scopes: HashMap::new(),
+          });
+          let link = "https://github.com/probablykasper/time-machine-inspector".to_string();
+          shell::open(&shell_scope, link, None).unwrap();
         }
         _ => {}
       }

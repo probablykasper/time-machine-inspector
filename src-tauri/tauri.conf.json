@@ -50,6 +50,9 @@
       "active": false
     },
     "allowlist": {
+      "dialog": {
+        "message": true
+      },
       "shell": {
         "open": true
       }

@@ -1,12 +1,13 @@
 use crate::dir_map::DirMap;
 use crate::{compare, listbackups, throw};
+use regex::Regex;
 use serde::Serialize;
 use std::collections::HashMap;
 use std::fs::File;
 use std::process::ExitStatus;
 use std::sync::{Mutex, MutexGuard};
 use tauri::api::{dialog, shell};
-use tauri::{command, State, Window};
+use tauri::{command, scope, State, Window};
 
 pub fn parse_output(bytes: Vec<u8>) -> Result<String, String> {
   match String::from_utf8(bytes) {
@@ -45,8 +46,13 @@ pub async fn full_disk_access(dialog_window: Window) -> Result<(), String> {
           2. Select Full Disk Access on the left\n\
           3. Add and enable Time Machine Inspector on the right",
         );
+
         let link = "x-apple.systempreferences:com.apple.preference.security?Privacy_AllFiles";
-        shell::open(link.to_string(), None).unwrap();
+        let shell_scope = scope::ShellScope::new(scope::ShellScopeConfig {
+          open: Some(Regex::new("^x-apple.systempreferences:").unwrap()),
+          scopes: HashMap::new(),
+        });
+        shell::open(&shell_scope, link.to_string(), None).unwrap();
 
         return Ok(());
       }
