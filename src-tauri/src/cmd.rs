@@ -5,8 +5,8 @@ use std::collections::HashMap;
 use std::fs::File;
 use std::process::ExitStatus;
 use std::sync::{Mutex, MutexGuard};
-use tauri::api::{dialog, shell};
-use tauri::{command, regex, scope, State, Window};
+use tauri::api::dialog;
+use tauri::{command, State, Window};
 
 pub fn parse_output(bytes: Vec<u8>) -> Result<String, String> {
   match String::from_utf8(bytes) {
@@ -46,12 +46,8 @@ pub async fn full_disk_access(dialog_window: Window) -> Result<(), String> {
           3. Add and enable Time Machine Inspector on the right",
         );
 
-        let link = "x-apple.systempreferences:com.apple.preference.security?Privacy_AllFiles";
-        let shell_scope = scope::ShellScope::new(scope::ShellScopeConfig {
-          open: Some(regex::Regex::new("^x-apple.systempreferences:").unwrap()),
-          scopes: HashMap::new(),
-        });
-        shell::open(&shell_scope, link.to_string(), None).unwrap();
+        open::that("x-apple.systempreferences:com.apple.preference.security?Privacy_AllFiles")
+          .unwrap();
 
         return Ok(());
       }
