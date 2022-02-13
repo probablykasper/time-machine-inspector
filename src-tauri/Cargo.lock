@@ -3153,7 +3153,6 @@ name = "time-machine-inspector"
 version = "1.1.2"
 dependencies = [
  "plist",
- "regex",
  "serde",
  "serde_json",
  "tauri",

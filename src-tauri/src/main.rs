@@ -3,13 +3,12 @@
   windows_subsystem = "windows"
 )]
 
-use regex::Regex;
 use std::collections::HashMap;
 use std::thread;
 use std::time::Instant;
 use tauri::api::{dialog, shell};
 use tauri::{
-  command, scope, CustomMenuItem, Manager, Menu, MenuEntry, MenuItem, Submenu, Window,
+  command, regex, scope, CustomMenuItem, Manager, Menu, MenuEntry, MenuItem, Submenu, Window,
   WindowBuilder, WindowUrl,
 };
 
@@ -125,7 +124,7 @@ fn main() {
       match event_name {
         "Learn More" => {
           let shell_scope = scope::ShellScope::new(scope::ShellScopeConfig {
-            open: Some(Regex::new("^https?://").unwrap()),
+            open: Some(regex::Regex::new("^https?://").unwrap()),
             scopes: HashMap::new(),
           });
           let link = "https://github.com/probablykasper/time-machine-inspector".to_string();
