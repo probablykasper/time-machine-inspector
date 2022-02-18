@@ -59,11 +59,7 @@
     display: flex
     box-sizing: border-box
     border-top: 0px
-    background-image: radial-gradient(circle at 50% 27%, hsl(230, 65%, 33%), transparent 100%),radial-gradient(circle at 0% 90%, hsl(230, 53%, 38%), transparent 40%),radial-gradient(circle at 5% 1%, hsl(230, 71%, 4%), transparent 100%),radial-gradient(circle at 50% 50%, #000000, #000000 100%)
-    background-image: radial-gradient(circle at -10% -10%, hsl(230, 65%, 30%), hsl(230, 72%, 9%) 110%)
-    background-image: radial-gradient(circle at -10% -10%, #25282F, #14101C 110%)
-    background-image: radial-gradient(circle at -10% -10%, #080A16, #14101C 110%)
-    background-image: radial-gradient(circle at -10% -10%, #133e34, #0b0d13 70%)
+    background-image: radial-gradient(circle at 0% 0%, #0e3930, #090b10 100%)
   :global(p)
     color: hsla(216, 50%, 85%, 0.8)
     font-size: 15px
