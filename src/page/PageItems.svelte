@@ -179,7 +179,7 @@
     display: flex
     align-items: center
     box-sizing: border-box
-    color: hsla(216, 50%, 70%, 0.75)
+    color: hsla(216, 80%, 90%, 0.8)
     cursor: default
     user-select: none
     padding-top: 4px
@@ -197,7 +197,7 @@
     display: flex
     align-items: center
   svg
-    fill: hsla(216, 50%, 70%, 0.75)
+    fill: hsla(216, 80%, 90%, 0.6)
   .size
     display: inline-block
     margin-left: auto
