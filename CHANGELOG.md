@@ -1,5 +1,8 @@
 # Changelog
 
+## Next
+- Slight design update
+
 ## 1.1.2 - 2021 Feb 1
 - Optimize app size (#2)
 
