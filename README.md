@@ -9,7 +9,7 @@
 </p>
 <br/>
 
-![Screenshot 1](assets/Screenshot.png)
+![Screenshot](assets/Screenshot.webp)
 
 ## Dev instructions
 
