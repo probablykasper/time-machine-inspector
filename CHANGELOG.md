@@ -1,6 +1,6 @@
 # Changelog
 
-## Next
+## 1.1.3 - 2022 May 17
 - Slight design improvements
 - Richer error message
 
