@@ -7,7 +7,7 @@ use std::thread;
 use std::time::Instant;
 use tauri::api::{dialog, shell};
 use tauri::{
-  command, CustomMenuItem, Manager, Menu, MenuEntry, MenuItem, Submenu, Window,
+  command, AboutMetadata, CustomMenuItem, Manager, Menu, MenuEntry, MenuItem, Submenu, Window,
   WindowBuilder, WindowUrl,
 };
 
@@ -49,25 +49,26 @@ fn main() {
       cmd::get_backup,
       cmd::backups_info,
     ])
-    .create_window("main", WindowUrl::default(), |win, webview| {
-      let win = win
+    .setup(|app| {
+      let window = WindowBuilder::new(app, "main", WindowUrl::default())
         .title("Time Machine Inspector")
         .resizable(true)
         .decorations(true)
-        // .transparent(true)
+        .transparent(true)
         .always_on_top(false)
         .inner_size(1000.0, 700.0)
         .min_inner_size(600.0, 250.0)
         .skip_taskbar(false)
-        .fullscreen(false);
-      return (win, webview);
-    })
-    .setup(|app| {
-      let window: tauri::Window = app.handle().get_window("main").unwrap();
+        .fullscreen(false)
+        .build()
+        .expect("Unable to create window");
       #[cfg(target_os = "macos")]
       {
-        use tauri_plugin_vibrancy::Vibrancy;
-        window.apply_vibrancy(tauri_plugin_vibrancy::MacOSVibrancy::WindowBackground);
+        use window_vibrancy::apply_vibrancy;
+        let _ = apply_vibrancy(
+          &window,
+          window_vibrancy::NSVisualEffectMaterial::WindowBackground,
+        );
       }
       Ok(())
     })
@@ -76,7 +77,7 @@ fn main() {
       MenuEntry::Submenu(Submenu::new(
         &ctx.package_info().name,
         Menu::with_items([
-          MenuItem::About(ctx.package_info().name.clone()).into(),
+          MenuItem::About(ctx.package_info().name.clone(), AboutMetadata::default()).into(),
           MenuItem::Separator.into(),
           MenuItem::Services.into(),
           MenuItem::Separator.into(),
