@@ -49,13 +49,16 @@ impl DirMap<()> {
     let mut dir_map = DirMap::new();
 
     for str_path in str_paths {
-      let path = PathBuf::from(str_path);
+      let path = PathBuf::from(&str_path);
 
       for ancestor in path.ancestors() {
         if ancestor == Path::new("/") {
           break;
         }
-        dir_map.item_entry(ancestor)?.or_insert(());
+        dir_map
+          .item_entry(ancestor)
+          .map_err(|e| format!("Unable to save path \"{}\": {}", str_path, e))?
+          .or_insert(());
       }
     }
     Ok(dir_map)
