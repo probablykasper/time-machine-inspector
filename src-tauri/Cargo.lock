@@ -1680,7 +1680,7 @@ dependencies = [
  "libc",
  "redox_syscall",
  "smallvec",
- "windows-sys",
+ "windows-sys 0.36.1",
 ]
 
 [[package]]
@@ -3198,12 +3198,13 @@ checksum = "712e227841d057c1ee1cd2fb22fa7e5a5461ae8e48fa2ca79ec42cfc1931183f"
 [[package]]
 name = "window-vibrancy"
 version = "0.1.2"
-source = "git+https://github.com/tauri-apps/window-vibrancy#5e7019fca24c73be44a62ea141845c4d0a61cae3"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "f413ac5d2ec04cc34c304af3f0c3b6bbbb6e90a4272eadb2a1b4af99c94b7556"
 dependencies = [
  "cocoa",
  "objc",
  "raw-window-handle",
- "windows-sys",
+ "windows-sys 0.35.0",
 ]
 
 [[package]]
@@ -3240,6 +3241,19 @@ checksum = "944c545fcae9dd66488308f8b69aa3ba34f53714416ecfcdcbbfa4b6821e27c6"
 dependencies = [
  "windows_quote",
  "windows_reader",
+]
+
+[[package]]
+name = "windows-sys"
+version = "0.35.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "c700bb45cfcbdb738ce92c41fc13e512514d4eaf6a99e8c87e2260a227175c16"
+dependencies = [
+ "windows_aarch64_msvc 0.35.0",
+ "windows_i686_gnu 0.35.0",
+ "windows_i686_msvc 0.35.0",
+ "windows_x86_64_gnu 0.35.0",
+ "windows_x86_64_msvc 0.35.0",
 ]
 
 [[package]]
