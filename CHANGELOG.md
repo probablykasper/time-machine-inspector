@@ -1,6 +1,7 @@
 # Changelog
 
 ## Next
+- Re-enable window border
 - Fix app not working due to Content Security Policy issue
 
 ## 1.1.3 - 2022 May 17

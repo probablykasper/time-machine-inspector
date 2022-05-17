@@ -54,7 +54,7 @@ fn main() {
         .title("Time Machine Inspector")
         .resizable(true)
         .decorations(true)
-        .transparent(true)
+        // .transparent(true) // disabled because it removed the window border
         .always_on_top(false)
         .inner_size(1000.0, 700.0)
         .min_inner_size(600.0, 250.0)
