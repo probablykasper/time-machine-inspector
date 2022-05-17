@@ -9,11 +9,14 @@ pub fn listbackups() -> Result<DirMap<()>, String> {
   //     .to_string(),
   // ));
 
+  println!("tmutil listbackups");
+
   let output = Command::new("tmutil")
     .arg("listbackups")
     .output()
     .expect("Error calling command");
   check_cmd_success(&output.status, output.stderr.clone())?;
+  println!("Success listing backups");
 
   let output_str = parse_output(output.stdout)?;
 

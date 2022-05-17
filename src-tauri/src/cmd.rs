@@ -86,7 +86,9 @@ pub async fn load_backup_list(
 
   full_disk_access(w).await?;
   let dir_map = listbackups::listbackups()?;
+  println!("Listed backups {:#?}", dir_map);
   state.lock()?.replace(dir_map.clone());
+  println!("Replaced state");
 
   Ok(dir_map)
 }

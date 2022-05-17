@@ -125,6 +125,8 @@ fn deserialize_value<T: DeserializeOwned>(value: &Value) -> Result<T, String> {
 pub fn compare(old: &str, new: &str) -> Result<DirMap<LoadedBackupItem>, String> {
   let mut anchor = Instant::now();
 
+  println!("tmutil compare -X -s '{}' '{}'", old, new);
+
   let mut cmd = Command::new("tmutil")
     .arg("compare")
     .arg("-X")
