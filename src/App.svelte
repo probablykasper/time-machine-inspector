@@ -46,6 +46,12 @@
 <Page />
 
 <style lang="sass">
+  @font-face
+    font-family: 'Open Sans'
+    src: url("/OpenSans-VariableFont_wdth,wght.ttf")
+    font-weight: 300 800
+    font-stretch: 75% 125
+    font-style: normal
   :global(html)
     height: 100%
     background-color: hsl(230, 72%, 7%)
