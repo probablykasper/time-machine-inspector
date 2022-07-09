@@ -1,6 +1,6 @@
 # Changelog
 
-## Next
+## 1.1.5 - 2022 Jul 9
 - Fix `No parent of path` error (#4)
 
 ## 1.1.4 - 2022 May 17
