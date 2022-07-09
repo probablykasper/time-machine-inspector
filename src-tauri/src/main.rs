@@ -50,11 +50,10 @@ fn main() {
       cmd::backups_info,
     ])
     .setup(|app| {
-      let window = WindowBuilder::new(app, "main", WindowUrl::default())
+      let _window = WindowBuilder::new(app, "main", WindowUrl::default())
         .title("Time Machine Inspector")
         .resizable(true)
         .decorations(true)
-        // .transparent(true) // disabled because it removed the window border
         .always_on_top(false)
         .inner_size(1000.0, 700.0)
         .min_inner_size(600.0, 250.0)
@@ -62,14 +61,6 @@ fn main() {
         .fullscreen(false)
         .build()
         .expect("Unable to create window");
-      #[cfg(target_os = "macos")]
-      {
-        use window_vibrancy::apply_vibrancy;
-        let _ = apply_vibrancy(
-          &window,
-          window_vibrancy::NSVisualEffectMaterial::WindowBackground,
-        );
-      }
       Ok(())
     })
     .menu(Menu::with_items([
