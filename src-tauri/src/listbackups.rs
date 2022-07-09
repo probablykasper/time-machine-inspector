@@ -20,11 +20,37 @@ pub fn listbackups() -> Result<DirMap<()>, String> {
 
   let output_str = parse_output(output.stdout)?;
 
-  let paths = output_str
+  let mut paths: Vec<String> = output_str
     .split('\n')
     .map(|s| s.to_string())
     .filter(|s| s != "")
     .collect();
+
+  let mut machine_dir = None;
+  for path in &mut paths {
+    if path.starts_with("/") {
+      continue;
+    }
+    match &machine_dir {
+      None => {
+        println!("tmutil machinedirectory");
+        let output = Command::new("tmutil")
+          .arg("machinedirectory")
+          .output()
+          .expect("Error calling command");
+        check_cmd_success(&output.status, output.stderr.clone())?;
+        println!("Success getting machinedirectory");
+        let output_str = parse_output(output.stdout)?;
+        machine_dir = Some(output_str);
+      }
+      Some(machine_dir) => {
+        *path = machine_dir.to_string() + "/" + &path;
+      }
+    }
+  }
+  if let Some(path0) = paths.get(0) {
+    if path0.starts_with("/") {}
+  }
 
   let dir_map = DirMap::from_string_paths(paths)?;
   Ok(dir_map)
