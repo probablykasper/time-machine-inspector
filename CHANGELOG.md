@@ -1,5 +1,8 @@
 # Changelog
 
+## Next
+- Fix `No parent of path` error (#4)
+
 ## 1.1.4 - 2022 May 17
 - Re-enable window border
 - Fix app not working due to Content Security Policy issue

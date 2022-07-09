@@ -12,9 +12,7 @@
     "macOSPrivateApi": true,
     "bundle": {
       "active": true,
-      "targets": [
-        "dmg"
-      ],
+      "targets": ["dmg"],
       "identifier": "space.kasper.time-machine-inspector",
       "icon": [
         "icons/32x32.png",
