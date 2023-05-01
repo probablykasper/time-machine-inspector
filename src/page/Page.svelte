@@ -1,9 +1,9 @@
 <script lang="ts">
-  import { runCmd } from '../general'
   import PageItems from './PageItems.svelte'
-  import { backups, page, backupInfos, pageMap, type PageMap } from './page'
+  import { backups, page, backupInfos, pageMap } from './page'
   import Button from '../lib/Button.svelte'
   import ProgressBar from '../lib/ProgressBar.svelte'
+  import commands from '../lib/commands'
 
   async function compare(autoLoad = false) {
     if ($page.loading || $backups === null) {
@@ -15,11 +15,7 @@
       if (!autoLoad) {
         $page.loading = true
       }
-      const result = (await runCmd('get_backup', {
-        old: $page.prevPath,
-        new: $page.fullPath,
-        refresh: false,
-      })) as { map: PageMap; cached_paths: [string, string][] }
+      const result = await commands.getBackup($page.prevPath, $page.fullPath, false)
       $pageMap = result.map
       backupInfos.load()
       console.log('Page items', result)

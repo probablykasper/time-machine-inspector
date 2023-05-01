@@ -1,6 +1,7 @@
 use crate::dir_map::DirMap;
 use crate::{compare, listbackups, throw};
 use serde::Serialize;
+use specta::Type;
 use std::collections::HashMap;
 use std::fs::File;
 use std::process::ExitStatus;
@@ -70,6 +71,7 @@ impl BackupList {
 }
 
 #[command]
+#[specta::specta]
 pub async fn load_backup_list(
   refresh: bool,
   w: Window,
@@ -93,8 +95,9 @@ pub async fn load_backup_list(
   Ok(dir_map)
 }
 
-#[derive(Serialize, Clone)]
+#[derive(Serialize, Clone, Type)]
 pub struct LoadedBackupItem {
+  #[specta(type = u32)] // tauri bigint fix
   pub size: u64,
 }
 
@@ -119,7 +122,7 @@ impl LoadedBackups {
   }
 }
 
-#[derive(Serialize, Clone)]
+#[derive(Serialize, Clone, Type)]
 pub struct BackupInfo {
   pub old: String,
   pub new: String,
@@ -127,6 +130,7 @@ pub struct BackupInfo {
 }
 
 #[command]
+#[specta::specta]
 pub async fn backups_info(state: State<'_, LoadedBackups>) -> Result<Vec<BackupInfo>, String> {
   let map = state.lock()?;
   let info = map.values().map(|b| BackupInfo {
@@ -143,14 +147,15 @@ async fn do_compare(old: &str, new: &str, w: Window) -> Result<DirMap<LoadedBack
 }
 
 #[command]
+#[specta::specta]
 pub async fn get_backup<'a>(
-  old: String,
-  new: String,
+  old_b: String,
+  new_b: String,
   refresh: bool,
   w: Window,
   state: State<'_, LoadedBackups>,
 ) -> Result<DirMap<LoadedBackupItem>, String> {
-  let old_new = (old.clone(), new.clone());
+  let old_new = (old_b.clone(), new_b.clone());
 
   // get cached dir_map
   if !refresh {
@@ -173,8 +178,8 @@ pub async fn get_backup<'a>(
       }
       None => {
         let backup = LoadedBackup {
-          old: old.clone(),
-          new: new.clone(),
+          old: old_b.clone(),
+          new: new_b.clone(),
           map: DirMap::new(),
           loading: true,
         };
@@ -183,12 +188,12 @@ pub async fn get_backup<'a>(
     }
   }
 
-  match do_compare(&old, &new, w).await {
+  match do_compare(&old_b, &new_b, w).await {
     Ok(dir_map) => {
       let mut loaded_backups = state.lock()?;
       let backup = LoadedBackup {
-        old,
-        new,
+        old: old_b,
+        new: new_b,
         map: dir_map.clone(),
         loading: false,
       };

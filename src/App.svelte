@@ -33,11 +33,7 @@
   {:else}
     <div class="sidebar-stuff" transition:fade={{ duration: 300, easing: cubicInOut }}>
       <Button disabled={loading} on:click={() => load(true)}>Refresh</Button>
-      {#if $backups && $backups.status !== ''}
-        <div class="status">
-          {$backups.status}
-        </div>
-      {:else if $backups}
+      {#if $backups}
         <Sidebar backups={$backups} />
       {/if}
     </div>
@@ -85,14 +81,6 @@
     height: 100%
     display: flex
     flex-direction: column
-  .status
-    flex-grow: 1
-    font-size: 15px
-    display: flex
-    align-items: center
-    justify-content: center
-    color: hsla(216, 50%, 85%, 0.8)
-    margin-bottom: 64px
   .loading
     height: 100%
     position: absolute // for transition

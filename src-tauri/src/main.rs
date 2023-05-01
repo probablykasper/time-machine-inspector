@@ -17,6 +17,7 @@ mod dir_map;
 mod listbackups;
 
 #[command]
+#[specta::specta]
 fn error_popup(msg: String, win: Window) {
   println!("Error: {}", msg);
   thread::spawn(move || {
@@ -38,6 +39,21 @@ pub fn reset_dur(since: &mut Instant) -> f32 {
 }
 
 fn main() {
+  #[cfg(debug_assertions)]
+  {
+    tauri_specta::ts::export(
+      specta::collect_types![
+        error_popup,
+        cmd::load_backup_list,
+        cmd::get_backup,
+        cmd::backups_info,
+      ],
+      "../bindings.ts",
+    )
+    .unwrap();
+    println!("Generated TS types");
+  }
+
   let ctx = tauri::generate_context!();
 
   tauri::Builder::default()

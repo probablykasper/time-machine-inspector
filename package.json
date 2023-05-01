@@ -26,6 +26,7 @@
     "sass": "^1.62.1",
     "svelte": "^3.58.0",
     "svelte-check": "^3.2.0",
+    "tauri-specta": "^0.0.2",
     "typescript": "^5.0.4",
     "vite": "^4.3.3"
   },

@@ -55,6 +55,7 @@
   function itemClick(item: Item) {
     if (item.isFolder) {
       item.show = !item.show
+      console.log('itemClick folder')
     } else if (item.prevPath && $page.fullPath !== item.path) {
       console.log('Open', item)
 
@@ -64,6 +65,8 @@
         prevPath: item.prevPath,
         loading: false,
       }
+    } else {
+      console.log('itemClick else', item.prevPath, $page.fullPath, item.path)
     }
   }
 </script>

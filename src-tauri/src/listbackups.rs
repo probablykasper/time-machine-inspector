@@ -14,6 +14,10 @@ pub fn listbackups() -> Result<DirMap<()>, String> {
 
   let output_str = parse_output(output.stdout)?;
 
+  if output_str.trim() == "tmutil error 1:\nNo machine directory found for host." {
+    return Ok(DirMap::new());
+  }
+
   let mut paths: Vec<String> = output_str
     .split('\n')
     .map(|s| s.to_string())

@@ -20,6 +20,11 @@ export default defineConfig({
   plugins: [
     svelte({
       preprocess: vitePreprocess(),
+      experimental: {
+        inspector: {
+          holdMode: true,
+        },
+      },
     }),
   ],
 })

@@ -1,6 +1,7 @@
 use crate::cmd::LoadedBackupItem;
 use crate::{compare, throw};
 use serde::Serialize;
+use specta::Type;
 use std::collections::hash_map::Entry;
 use std::collections::HashMap;
 use std::ffi::OsStr;
@@ -8,7 +9,7 @@ use std::path::{Path, PathBuf};
 
 pub type DirContents<I> = HashMap<String, I>;
 
-#[derive(Serialize, Clone, Debug)]
+#[derive(Serialize, Clone, Debug, Type)]
 pub struct DirMap<I> {
   pub map: HashMap<String, DirContents<I>>,
 }
