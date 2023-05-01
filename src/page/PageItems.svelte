@@ -1,7 +1,7 @@
 <script lang="ts">
   import { createEventDispatcher, SvelteComponent } from 'svelte'
 
-  import { PageMap, pageMap, selectedPath } from './page'
+  import { pageMap, type PageMap, selectedPath } from './page'
 
   export let path: string
 

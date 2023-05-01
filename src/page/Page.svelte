@@ -1,7 +1,7 @@
 <script lang="ts">
   import { runCmd } from '../general'
   import PageItems from './PageItems.svelte'
-  import { backups, page, backupInfos, pageMap, PageMap } from './page'
+  import { backups, page, backupInfos, pageMap, type PageMap } from './page'
   import Button from '../lib/Button.svelte'
   import ProgressBar from '../lib/ProgressBar.svelte'
 

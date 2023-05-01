@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { page, Backups, backupInfos, BackupInfo } from '../page/page'
+  import { page, backupInfos, type Backups, type BackupInfo } from '../page/page'
 
   export let path: string
   export let backups: Backups
