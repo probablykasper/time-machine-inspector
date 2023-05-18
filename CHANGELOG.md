@@ -1,6 +1,6 @@
 # Changelog
 
-## Next
+## 1.2.0 - 2023 May 19
 - Support macOS 13
 - Support multiple backup destinations
 
