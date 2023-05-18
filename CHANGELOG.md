@@ -2,6 +2,7 @@
 
 ## Next
 - Support macOS 13
+- Support multiple backup destinations
 
 ## 1.1.5 - 2022 Jul 9
 - Fix `No parent of path` error (#4)

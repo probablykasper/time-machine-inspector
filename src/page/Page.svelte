@@ -4,9 +4,9 @@
   import Button from '../lib/Button.svelte'
   import ProgressBar from '../lib/ProgressBar.svelte'
   import commands from '../lib/commands'
-  import type { DestinationXml } from '../../bindings'
+  import type { DestinationDetail } from '../../bindings'
 
-  export let destination: DestinationXml | null = null
+  export let destination: DestinationDetail | null = null
 
   async function compare(autoLoad = false) {
     if ($page.loading || $page.backup === null) {

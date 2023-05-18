@@ -25,11 +25,11 @@ export function backupsInfo() {
 }
 
 export function destinationinfo() {
-    return invoke<DestinationXml[]>("destinationinfo")
+    return invoke<DestinationDetail[]>("destinationinfo")
 }
 
 export type Backup = { path: string; name: string }
-export type DestinationXml = { kind: string; url: string; name: string; id: string; last_destination: number; mount_point: string }
+export type DestinationDetail = { id: string; mount_point: string; mount_point_name: string }
 export type DirMap = { map: { [key: string]: { [key: string]: LoadedBackupItem } } }
 export type LoadedBackupItem = { size: number }
 export type BackupInfo = { old: string; new: string; loading: boolean }

@@ -28,9 +28,9 @@ jobs:
 
       - run: npm install
 
-      - run: npm run test
-
       - run: npm run build:web
+
+      - run: npm run test
 
       - run: npm run lint
 

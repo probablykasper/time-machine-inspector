@@ -7,31 +7,36 @@
   import ProgressBar from './lib/ProgressBar.svelte'
   import Button from './lib/Button.svelte'
   import commands from './lib/commands'
-  import type { Backup, DestinationXml } from '../bindings'
+  import type { Backup, DestinationDetail } from '../bindings'
 
-  let destinations: DestinationXml[] | null = null
-  let destination: DestinationXml | null = null
+  let destinations: DestinationDetail[] | null = null
+  let selectedDestination: DestinationDetail | null = null
   let backups: Backup[] | null = null
-
   let loading = false
   async function refresh(refresh = false) {
     let minEndTime = Date.now() + 250
+    function timeRemaining() {
+      return Math.max(minEndTime - Date.now(), 0)
+    }
     if (loading) {
       return
     }
     loading = true
+    selectedDestination = null
     closePage()
 
     destinations = await commands.destinationinfo()
-    console.log('Loaded destinations', destinations)
-    destination = destinations[0] ?? null
 
-    backups = await commands.loadBackupList(destination.id, refresh)
-    console.log('Loaded backups', backups)
+    if (destinations[0]) {
+      setTimeout(() => {
+        selectedDestination = destinations[0]
+      }, timeRemaining())
 
+      backups = await commands.loadBackupList(destinations[0].id, refresh)
+      console.log('Loaded backups', backups)
+    }
     await new Promise((resolve) => {
-      let timeRemaining = Math.max(minEndTime - Date.now())
-      setTimeout(resolve, timeRemaining)
+      setTimeout(resolve, timeRemaining())
     })
     loading = false
   }
@@ -39,23 +44,51 @@
 </script>
 
 <div class="sidebar">
-  {#if destination !== null}
-    <p>{destinations[0].mount_point}</p>
-  {/if}
   {#if loading}
     <div class="loading" transition:fade={{ duration: 500, easing: cubicInOut }}>
       <ProgressBar />
     </div>
-  {:else}
+  {/if}
+  <Button disabled={loading} on:click={() => refresh(true)}>Refresh</Button>
+  <div class="mount-point">
+    {#if selectedDestination}
+      <div transition:fade={{ duration: 300, easing: cubicInOut }}>
+        {#if destinations.length >= 2}
+          <select
+            value={selectedDestination.id}
+            disabled={loading}
+            on:change={async (e) => {
+              loading = true
+              selectedDestination = destinations.find((d) => d.id === e.currentTarget.value) || null
+              backups = await commands.loadBackupList(destinations[0].id, false)
+              console.log('Loaded backups', backups)
+              loading = false
+            }}
+          >
+            {#each destinations as destination}
+              <option value={destination.id}>{destination.mount_point_name}</option>
+            {/each}
+          </select>
+        {:else}
+          <span>{selectedDestination.mount_point_name}</span>
+          <!-- <select value={destination}>
+            {#each destinations as destination}
+              <option value={destination}>{destination.mount_point_name}</option>
+            {/each}
+          </select> -->
+        {/if}
+      </div>
+    {/if}
+  </div>
+  {#if !loading}
     <div class="sidebar-stuff" transition:fade={{ duration: 300, easing: cubicInOut }}>
-      <Button disabled={loading} on:click={() => refresh(true)}>Refresh</Button>
       {#if backups}
         <Sidebar {backups} />
       {/if}
     </div>
   {/if}
 </div>
-<Page {destination} />
+<Page destination={selectedDestination} />
 
 <style lang="sass">
   @font-face
@@ -98,6 +131,13 @@
     display: flex
     flex-direction: column
     flex-grow: 1
+  .mount-point
+    font-size: 15px
+    font-weight: 600
+    margin-left: auto
+    margin-right: auto
+    color: hsla(216, 50%, 85%, 1)
+    height: 25px
   .loading
     height: 100%
     position: absolute // for transition

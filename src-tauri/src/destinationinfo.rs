@@ -14,7 +14,7 @@ pub struct DestinationInfoXml {
   pub destinations: Vec<DestinationXml>,
 }
 
-#[derive(Serialize, Deserialize, Debug, Type)]
+#[derive(Deserialize, Debug, Type)]
 #[serde(deny_unknown_fields)]
 pub struct DestinationXml {
   #[serde(alias = "Kind")]
@@ -26,16 +26,23 @@ pub struct DestinationXml {
   #[serde(alias = "ID")]
   pub id: String,
   #[serde(alias = "LastDestination")]
-  pub last_destination: u32, // u32 due to tauri-specta
+  pub last_destination: usize,
   #[serde(alias = "MountPoint")]
   pub mount_point: String,
+}
+
+#[derive(Serialize, Debug, Type)]
+pub struct DestinationDetail {
+  pub id: String,
+  pub mount_point: String,
+  pub mount_point_name: String,
 }
 
 #[command]
 #[specta::specta]
 pub async fn destinationinfo(
   state: State<'_, DestinationsState>,
-) -> Result<Vec<DestinationXml>, String> {
+) -> Result<Vec<DestinationDetail>, String> {
   let output = Command::new("tmutil")
     .arg("destinationinfo")
     .arg("-X")
@@ -61,5 +68,22 @@ pub async fn destinationinfo(
   }
   state.lock()?.destinations = Some(destinations_map.clone());
 
-  Ok(output_xml.destinations)
+  let destinations_details = output_xml
+    .destinations
+    .into_iter()
+    .map(|dest| {
+      let mount_point_name = if dest.mount_point.starts_with("/Volumes/") {
+        dest.mount_point["/Volumes/".len()..].to_string()
+      } else {
+        dest.mount_point.clone()
+      };
+      DestinationDetail {
+        id: dest.id,
+        mount_point: dest.mount_point,
+        mount_point_name,
+      }
+    })
+    .collect();
+
+  Ok(destinations_details)
 }
