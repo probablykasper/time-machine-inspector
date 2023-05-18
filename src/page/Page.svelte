@@ -9,7 +9,7 @@
   export let destination: DestinationDetail | null = null
 
   async function compare(autoLoad = false) {
-    if ($page.loading || $page.backup === null) {
+    if ($page.loading || $page.backup === null || !destination) {
       return
     }
     if (!autoLoad) {

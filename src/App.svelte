@@ -25,14 +25,15 @@
     selectedDestination = null
     closePage()
 
-    destinations = await commands.destinationinfo()
+    const newDestinations = await commands.destinationinfo()
+    destinations = newDestinations
 
     if (destinations[0]) {
       setTimeout(() => {
-        selectedDestination = destinations[0]
+        selectedDestination = newDestinations[0]
       }, timeRemaining())
 
-      backups = await commands.loadBackupList(destinations[0].id, refresh)
+      backups = await commands.loadBackupList(newDestinations[0].id, refresh)
       console.log('Loaded backups', backups)
     }
     await new Promise((resolve) => {
@@ -51,13 +52,16 @@
   {/if}
   <Button disabled={loading} on:click={() => refresh(true)}>Refresh</Button>
   <div class="mount-point">
-    {#if selectedDestination}
+    {#if destinations && selectedDestination}
       <div transition:fade={{ duration: 300, easing: cubicInOut }}>
         {#if destinations.length >= 2}
           <select
             value={selectedDestination.id}
             disabled={loading}
             on:change={async (e) => {
+              if (!destinations) {
+                return
+              }
               loading = true
               selectedDestination = destinations.find((d) => d.id === e.currentTarget.value) || null
               backups = await commands.loadBackupList(destinations[0].id, false)
