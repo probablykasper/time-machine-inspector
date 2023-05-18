@@ -3,7 +3,7 @@
     "productName": "Time Machine Inspector"
   },
   "build": {
-    "distDir": "../build",
+    "distDir": "../dist",
     "devPath": "http://localhost:3000",
     "beforeDevCommand": "npm run dev:web",
     "beforeBuildCommand": "npm run build:web"

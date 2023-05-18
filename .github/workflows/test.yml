@@ -8,13 +8,13 @@ on:
 
 jobs:
   test:
-    runs-on: macos-10.15
+    runs-on: macos-latest
     steps:
       - name: Checkout repository
         uses: actions/checkout@v3
 
       - name: Node.js setup
-        uses: actions/setup-node@v1
+        uses: actions/setup-node@v3
         with:
           node-version: 18
 
@@ -22,24 +22,17 @@ jobs:
         uses: dtolnay/rust-toolchain@stable
 
       - name: Rust Cache
-        uses: Swatinem/rust-cache@v1
+        uses: Swatinem/rust-cache@v2
         with:
-          working-directory: ./src-tauri
-
-      - name: Install dependencies (Ubuntu only)
-        if: matrix.platform == 'ubuntu-latest'
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y webkit2gtk-4.0
+          workspaces: ./src-tauri
 
       - run: npm install
+
+      - run: npm run test
 
       - run: npm run build:web
 
       - run: npm run lint
-        if: matrix.platform == 'ubuntu-latest'
-
-      - run: npm run test
 
       - name: Build
         uses: tauri-apps/tauri-action@v0
