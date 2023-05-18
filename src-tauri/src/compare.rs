@@ -1,4 +1,4 @@
-use crate::cmd::{check_cmd_success, LoadedBackupItem};
+use crate::cmd::check_cmd_success;
 use crate::dir_map::DirMap;
 use crate::{reset_dur, throw};
 use plist::Value;
@@ -122,7 +122,7 @@ fn deserialize_value<T: DeserializeOwned>(value: &Value) -> Result<T, String> {
   Ok(change)
 }
 
-pub fn compare(old: &str, new: &str) -> Result<DirMap<LoadedBackupItem>, String> {
+pub fn compare(old: &str, new: &str) -> Result<DirMap, String> {
   let mut anchor = Instant::now();
 
   println!("tmutil compare -X -s '{}' '{}'", old, new);
@@ -138,7 +138,7 @@ pub fn compare(old: &str, new: &str) -> Result<DirMap<LoadedBackupItem>, String>
     .spawn()
     .expect("Error calling command");
 
-  println!("\u{23f1}  {:.3}ms running tmutil", reset_dur(&mut anchor));
+  reset_dur(&mut anchor);
 
   let mut child_out = BufReader::new(cmd.stdout.as_mut().unwrap());
   let mut lines = Vec::new();

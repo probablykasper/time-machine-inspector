@@ -1,45 +1,61 @@
 <script lang="ts">
   import Page from './page/Page.svelte'
   import Sidebar from './sidebar/Sidebar.svelte'
-  import { backups, close as closePage, loadBackups } from './page/page'
+  import { close as closePage } from './page/page'
   import { fade } from 'svelte/transition'
   import { cubicInOut } from 'svelte/easing'
   import ProgressBar from './lib/ProgressBar.svelte'
   import Button from './lib/Button.svelte'
+  import commands from './lib/commands'
+  import type { Backup, DestinationXml } from '../bindings'
+
+  let destinations: DestinationXml[] | null = null
+  let destination: DestinationXml | null = null
+  let backups: Backup[] | null = null
 
   let loading = false
-  async function load(refresh = false) {
+  async function refresh(refresh = false) {
     let minEndTime = Date.now() + 250
     if (loading) {
       return
     }
     loading = true
     closePage()
-    await loadBackups(refresh)
-    let timeRemaining = Math.max(minEndTime - Date.now())
+
+    destinations = await commands.destinationinfo()
+    console.log('Loaded destinations', destinations)
+    destination = destinations[0] ?? null
+
+    backups = await commands.loadBackupList(destination.id, refresh)
+    console.log('Loaded backups', backups)
+
     await new Promise((resolve) => {
+      let timeRemaining = Math.max(minEndTime - Date.now())
       setTimeout(resolve, timeRemaining)
     })
     loading = false
   }
-  load()
+  refresh()
 </script>
 
 <div class="sidebar">
+  {#if destination !== null}
+    <p>{destinations[0].mount_point}</p>
+  {/if}
   {#if loading}
     <div class="loading" transition:fade={{ duration: 500, easing: cubicInOut }}>
       <ProgressBar />
     </div>
   {:else}
     <div class="sidebar-stuff" transition:fade={{ duration: 300, easing: cubicInOut }}>
-      <Button disabled={loading} on:click={() => load(true)}>Refresh</Button>
-      {#if $backups}
-        <Sidebar backups={$backups} />
+      <Button disabled={loading} on:click={() => refresh(true)}>Refresh</Button>
+      {#if backups}
+        <Sidebar {backups} />
       {/if}
     </div>
   {/if}
 </div>
-<Page />
+<Page {destination} />
 
 <style lang="sass">
   @font-face
@@ -67,7 +83,6 @@
     font-size: 15px
   .sidebar
     position: relative
-    flex-shrink: 0
     flex-grow: 1
     min-width: 220px
     max-width: 35%
@@ -77,10 +92,12 @@
     backdrop-filter: brightness(80%)
     border: 0px
     border-right: 1px solid hsla(230, 100%, 85%, 0.12)
-  .sidebar-stuff
-    height: 100%
     display: flex
     flex-direction: column
+  .sidebar-stuff
+    display: flex
+    flex-direction: column
+    flex-grow: 1
   .loading
     height: 100%
     position: absolute // for transition

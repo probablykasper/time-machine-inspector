@@ -101,8 +101,6 @@
     }
   }
   function bodyKeydown(e: KeyboardEvent) {
-    console.log('bodyKeydown')
-
     if (
       e.key === 'ArrowLeft' ||
       e.key === 'ArrowRight' ||
@@ -126,6 +124,7 @@
 <svelte:body on:keydown={bodyKeydown} />
 
 {#each dir as item, i}
+  <!-- svelte-ignore a11y-click-events-have-key-events -->
   <div
     class="item"
     class:open={item.isOpen}

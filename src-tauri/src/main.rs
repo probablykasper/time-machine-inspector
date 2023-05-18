@@ -13,6 +13,7 @@ use tauri::{
 
 mod cmd;
 mod compare;
+mod destinationinfo;
 mod dir_map;
 mod listbackups;
 
@@ -47,6 +48,7 @@ fn main() {
         cmd::load_backup_list,
         cmd::get_backup,
         cmd::backups_info,
+        destinationinfo::destinationinfo,
       ],
       "../bindings.ts",
     )
@@ -57,13 +59,14 @@ fn main() {
   let ctx = tauri::generate_context!();
 
   tauri::Builder::default()
-    .manage(cmd::BackupList(Default::default()))
+    .manage(cmd::DestinationsState(Default::default()))
     .manage(cmd::LoadedBackups(Default::default()))
     .invoke_handler(tauri::generate_handler![
       error_popup,
       cmd::load_backup_list,
       cmd::get_backup,
       cmd::backups_info,
+      destinationinfo::destinationinfo,
     ])
     .setup(|app| {
       let _window = WindowBuilder::new(app, "main", WindowUrl::default())

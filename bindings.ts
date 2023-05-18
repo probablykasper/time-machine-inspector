@@ -12,18 +12,24 @@ export function errorPopup(msg: string) {
     return invoke<null>("error_popup", { msg })
 }
 
-export function loadBackupList(refresh: boolean) {
-    return invoke<DirMap<null>>("load_backup_list", { refresh })
+export function loadBackupList(destinationId: string, refresh: boolean) {
+    return invoke<Backup[]>("load_backup_list", { destinationId,refresh })
 }
 
-export function getBackup(oldB: string, newB: string, refresh: boolean) {
-    return invoke<DirMap<LoadedBackupItem>>("get_backup", { oldB,newB,refresh })
+export function getBackup(destinationId: string, newB: string, refresh: boolean) {
+    return invoke<DirMap>("get_backup", { destinationId,newB,refresh })
 }
 
 export function backupsInfo() {
     return invoke<BackupInfo[]>("backups_info")
 }
 
-export type BackupInfo = { old: string; new: string; loading: boolean }
+export function destinationinfo() {
+    return invoke<DestinationXml[]>("destinationinfo")
+}
+
+export type Backup = { path: string; name: string }
+export type DestinationXml = { kind: string; url: string; name: string; id: string; last_destination: number; mount_point: string }
+export type DirMap = { map: { [key: string]: { [key: string]: LoadedBackupItem } } }
 export type LoadedBackupItem = { size: number }
-export type DirMap<I> = { map: { [key: string]: { [key: I]: null } } }
+export type BackupInfo = { old: string; new: string; loading: boolean }

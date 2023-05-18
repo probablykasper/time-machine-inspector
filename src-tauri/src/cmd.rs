@@ -1,5 +1,6 @@
 use crate::dir_map::DirMap;
-use crate::{compare, listbackups, throw};
+use crate::listbackups::{Backup, Destinations};
+use crate::{compare, throw};
 use serde::Serialize;
 use specta::Type;
 use std::collections::HashMap;
@@ -58,14 +59,13 @@ pub async fn full_disk_access(dialog_window: Window) -> Result<(), String> {
   Ok(())
 }
 
-#[derive(Default)]
-pub struct BackupList(pub Mutex<Option<DirMap<()>>>);
+pub struct DestinationsState(pub Mutex<Destinations>);
 
-impl BackupList {
-  pub fn lock(&self) -> Result<MutexGuard<Option<DirMap<()>>>, String> {
+impl DestinationsState {
+  pub fn lock(&self) -> Result<MutexGuard<Destinations>, String> {
     match self.0.lock() {
       Ok(mutex) => Ok(mutex),
-      Err(e) => throw!("Unable to lock backup list: {}", e),
+      Err(e) => throw!("Unable to acquire mutex: {}", e),
     }
   }
 }
@@ -73,29 +73,31 @@ impl BackupList {
 #[command]
 #[specta::specta]
 pub async fn load_backup_list(
+  destination_id: String,
   refresh: bool,
   w: Window,
-  state: State<'_, BackupList>,
-) -> Result<DirMap<()>, String> {
+  state: State<'_, DestinationsState>,
+) -> Result<Vec<Backup>, String> {
   // get cached backup_list
   if !refresh {
-    let backup_list = state.lock()?;
-    match &*backup_list {
-      Some(list) => return Ok(list.clone()),
+    let mut destinations = state.lock()?;
+    let destination = destinations.get_destination(&destination_id)?;
+    match &destination.backups {
+      Some(backups) => return Ok(backups.clone()),
       None => {}
     }
   }
 
   full_disk_access(w).await?;
-  let dir_map = listbackups::listbackups()?;
-  println!("Listed backups {:#?}", dir_map);
-  state.lock()?.replace(dir_map.clone());
-  println!("Replaced state");
+  let mut destinations = state.lock()?;
+  let destination = destinations.get_destination(&destination_id)?;
+  let backups = destination.load_backups_list()?;
+  println!("Listed backups {:#?}", backups);
 
-  Ok(dir_map)
+  Ok(backups.clone())
 }
 
-#[derive(Serialize, Clone, Type)]
+#[derive(Serialize, Clone, Type, Debug)]
 pub struct LoadedBackupItem {
   #[specta(type = u32)] // tauri bigint fix
   pub size: u64,
@@ -105,12 +107,11 @@ pub struct LoadedBackupItem {
 pub struct LoadedBackup {
   pub old: String,
   pub new: String,
-  pub map: DirMap<LoadedBackupItem>,
+  pub map: DirMap,
   pub loading: bool,
 }
 pub type LoadedBackupsMap = HashMap<(String, String), LoadedBackup>;
 
-#[derive(Default)]
 pub struct LoadedBackups(pub Mutex<LoadedBackupsMap>);
 
 impl LoadedBackups {
@@ -141,7 +142,7 @@ pub async fn backups_info(state: State<'_, LoadedBackups>) -> Result<Vec<BackupI
   Ok(info.collect())
 }
 
-async fn do_compare(old: &str, new: &str, w: Window) -> Result<DirMap<LoadedBackupItem>, String> {
+async fn do_compare(old: &str, new: &str, w: Window) -> Result<DirMap, String> {
   full_disk_access(w).await?;
   Ok(compare::compare(&old, &new)?)
 }
@@ -149,12 +150,31 @@ async fn do_compare(old: &str, new: &str, w: Window) -> Result<DirMap<LoadedBack
 #[command]
 #[specta::specta]
 pub async fn get_backup<'a>(
-  old_b: String,
+  destination_id: String,
   new_b: String,
   refresh: bool,
   w: Window,
   state: State<'_, LoadedBackups>,
-) -> Result<DirMap<LoadedBackupItem>, String> {
+  destinations_state: State<'_, DestinationsState>,
+) -> Result<DirMap, String> {
+  let (old_b, new_b) = {
+    let mut destinations = destinations_state.lock()?;
+    let destination = destinations.get_destination(&destination_id)?;
+    let backups = match &destination.backups {
+      Some(data) => data,
+      None => throw!("Backup list not loaded"),
+    };
+    let new_pos = match backups.iter().position(|p| p.path == new_b) {
+      Some(pos) => pos,
+      None => throw!("Unable to find backup {}", new_b),
+    };
+    let old_b = backups
+      .get(new_pos - 1)
+      .ok_or("No previous backup")?
+      .clone()
+      .path;
+    (old_b, new_b)
+  };
   let old_new = (old_b.clone(), new_b.clone());
 
   // get cached dir_map

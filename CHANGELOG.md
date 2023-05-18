@@ -1,5 +1,8 @@
 # Changelog
 
+## Next
+- Support macOS 13
+
 ## 1.1.5 - 2022 Jul 9
 - Fix `No parent of path` error (#4)
 

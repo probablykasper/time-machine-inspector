@@ -1,55 +1,59 @@
 <script lang="ts">
   import PageItems from './PageItems.svelte'
-  import { backups, page, backupInfos, pageMap } from './page'
+  import { page, backupInfos, pageMap } from './page'
   import Button from '../lib/Button.svelte'
   import ProgressBar from '../lib/ProgressBar.svelte'
   import commands from '../lib/commands'
+  import type { DestinationXml } from '../../bindings'
+
+  export let destination: DestinationXml | null = null
 
   async function compare(autoLoad = false) {
-    if ($page.loading || $backups === null) {
+    if ($page.loading || $page.backup === null) {
       return
     }
-    const fullPathParent = $page.fullPath.substring(0, $page.fullPath.lastIndexOf('/'))
-    const dir = $backups.dirs[fullPathParent][$page.name]
-    if (dir !== undefined) {
-      if (!autoLoad) {
-        $page.loading = true
-      }
-      const result = await commands.getBackup($page.prevPath, $page.fullPath, false)
-      $pageMap = result.map
-      backupInfos.load()
-      console.log('Page items', result)
+    if (!autoLoad) {
+      $page.loading = true
     }
+    const result = await commands.getBackup(destination.id, $page.backup.path, false)
+    $pageMap = result.map
+    backupInfos.load()
   }
 
-  $: autoLoad($page.prevPath, $page.fullPath)
-  function autoLoad(oldPath: string, newPath: string) {
+  $: if ($page.backup) {
+    autoLoad($page.backup.path)
+  }
+  function autoLoad(newPath: string) {
     for (const info of $backupInfos) {
-      if (info.old === oldPath && info.new === newPath) {
+      if (info.new === newPath) {
         compare(true)
       }
     }
   }
 </script>
 
-{#if $page.fullPath === ''}
+{#if !destination}
   <main class="empty">
     <p>You can open a backup from the sidebar when it's loaded</p>
   </main>
+{:else if !$page.backup}
+  <main class="empty">
+    <p>You can open a backup from the sidebar</p>
+  </main>
 {:else}
   <main>
-    <div class="bar">{$page.fullPath}</div>
+    <div class="bar">{$page.backup.path}</div>
     <div class="content">
       {#if $page.loading}
         <div class="absolute center-align">
           <ProgressBar />
         </div>
-      {:else if $pageMap === null || $pageMap[$page.fullPath] === undefined}
+      {:else if $pageMap === null || $pageMap[$page.backup.path] === undefined}
         <div class="absolute center-align">
           <Button on:click={() => compare()}>Load</Button>
         </div>
       {:else}
-        <PageItems path={$page.fullPath} />
+        <PageItems path={$page.backup.path} />
       {/if}
     </div>
   </main>

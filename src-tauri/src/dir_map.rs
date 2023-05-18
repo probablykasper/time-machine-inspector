@@ -7,11 +7,11 @@ use std::collections::HashMap;
 use std::ffi::OsStr;
 use std::path::{Path, PathBuf};
 
-pub type DirContents<I> = HashMap<String, I>;
+pub type DirContents = HashMap<String, LoadedBackupItem>;
 
-#[derive(Serialize, Clone, Debug, Type)]
-pub struct DirMap<I> {
-  pub map: HashMap<String, DirContents<I>>,
+#[derive(Serialize, Clone, Debug, Type, Default)]
+pub struct DirMap {
+  pub map: HashMap<String, DirContents>,
 }
 
 fn get_parent<'a>(path: &'a Path) -> Result<&'a Path, String> {
@@ -27,46 +27,22 @@ fn get_basename<'a>(path: &'a Path) -> Result<&'a OsStr, String> {
   }
 }
 
-impl<I> DirMap<I> {
+impl DirMap {
   pub fn new() -> Self {
     Self {
       map: HashMap::new(),
     }
   }
-  pub fn get_or_create_dir(&mut self, path: String) -> &mut DirContents<I> {
+  pub fn get_or_create_dir(&mut self, path: String) -> &mut DirContents {
     self.map.entry(path).or_insert(HashMap::new())
   }
-  pub fn item_entry(&mut self, path: &Path) -> Result<Entry<String, I>, String> {
+  pub fn item_entry(&mut self, path: &Path) -> Result<Entry<String, LoadedBackupItem>, String> {
     let dir = get_parent(path)?.to_string_lossy().to_string();
     let basename = get_basename(path)?.to_string_lossy().to_string();
 
     let dir_contents = self.get_or_create_dir(dir);
     Ok(dir_contents.entry(basename))
   }
-}
-
-impl DirMap<()> {
-  pub fn from_string_paths(str_paths: Vec<String>) -> Result<Self, String> {
-    let mut dir_map = DirMap::new();
-
-    for str_path in str_paths {
-      let path = PathBuf::from(&str_path);
-
-      for ancestor in path.ancestors() {
-        if ancestor == Path::new("/") {
-          break;
-        }
-        dir_map
-          .item_entry(ancestor)
-          .map_err(|e| format!("Unable to save path \"{}\": {}", str_path, e))?
-          .or_insert(());
-      }
-    }
-    Ok(dir_map)
-  }
-}
-
-impl DirMap<LoadedBackupItem> {
   pub fn from_comparison(comparison: compare::Comparison) -> Result<Self, String> {
     let mut dir_map = DirMap::new();
 
