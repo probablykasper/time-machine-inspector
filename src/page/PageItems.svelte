@@ -40,7 +40,10 @@
 		})
 	}
 
-	const dispatch = createEventDispatcher()
+	const dispatch = createEventDispatcher<{
+		selectUp: null
+		selectDown: null
+	}>()
 
 	let itemChildren: SvelteComponent[] = []
 
