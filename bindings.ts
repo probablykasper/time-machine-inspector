@@ -31,7 +31,7 @@ export function destinationinfo() {
 }
 
 export type Backup = { path: string; name: string }
+export type LoadedBackupItem = { size: number }
 export type DestinationDetail = { id: string; mount_point: string; mount_point_name: string }
 export type DirMap = { map: { [key: string]: { [key: string]: LoadedBackupItem } } }
-export type LoadedBackupItem = { size: number }
 export type BackupInfo = { old: string; new: string; loading: boolean }

@@ -1,11 +1,11 @@
 <p align="center">
-  <img src="./assets/Logo.png" width="80">
+	<img src="./assets/Logo.png" width="80">
 </p>
 <h3 align="center">Time Machine Inspector</h3>
 <p align="center">
-  Find out what's hogging up your backups
-  <br/>
-  <a href="https://github.com/probablykasper/time-machine-inspector/releases"><b>Download for Mac</b></a>
+	Find out what's hogging up your backups
+	<br/>
+	<a href="https://github.com/probablykasper/time-machine-inspector/releases"><b>Download for Mac</b></a>
 </p>
 <br/>
 

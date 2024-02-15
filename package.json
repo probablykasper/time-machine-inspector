@@ -1,42 +1,43 @@
 {
-  "private": true,
-  "type": "module",
-  "scripts": {
-    "tauri": "tauri",
-    "dev": "tauri dev",
-    "dev:web": "vite",
-    "build": "tauri build",
-    "build:web": "vite build",
-    "test": "cargo test --manifest-path ./src-tauri/Cargo.toml",
-    "lint": "svelte-check --tsconfig ./tsconfig.json && eslint src && prettier --check src",
-    "format": "eslint --fix src && prettier --write src"
-  },
-  "devDependencies": {
-    "@sveltejs/vite-plugin-svelte": "^3.0.2",
-    "@tauri-apps/api": "^1.5.3",
-    "@tauri-apps/cli": "^1.5.9",
-    "@tsconfig/svelte": "^5.0.2",
-    "@typescript-eslint/eslint-plugin": "^7.0.1",
-    "@typescript-eslint/parser": "^7.0.1",
-    "autoprefixer": "^10.4.17",
-    "eslint": "^8.56.0",
-    "eslint-config-prettier": "^9.1.0",
-    "eslint-plugin-svelte": "^2.35.1",
-    "prettier": "^3.2.5",
-    "prettier-plugin-svelte": "^3.2.1",
-    "sass": "^1.70.0",
-    "svelte": "^4.2.10",
-    "svelte-check": "^3.6.4",
-    "tauri-specta": "^0.0.2",
-    "typescript": "^5.3.3",
-    "vite": "^5.1.2"
-  },
-  "prettier": {
-    "printWidth": 100,
-    "semi": false,
-    "singleQuote": true,
-    "plugins": [
-      "prettier-plugin-svelte"
-    ]
-  }
+	"private": true,
+	"type": "module",
+	"scripts": {
+		"tauri": "tauri",
+		"dev": "tauri dev",
+		"dev:web": "vite",
+		"build": "tauri build",
+		"build:web": "vite build",
+		"test": "cargo test --manifest-path ./src-tauri/Cargo.toml",
+		"lint": "svelte-check --tsconfig ./tsconfig.json && eslint src && prettier --check src",
+		"format": "eslint --fix src && prettier --write src"
+	},
+	"devDependencies": {
+		"@sveltejs/vite-plugin-svelte": "^3.0.2",
+		"@tauri-apps/api": "^1.5.3",
+		"@tauri-apps/cli": "^1.5.9",
+		"@tsconfig/svelte": "^5.0.2",
+		"@typescript-eslint/eslint-plugin": "^7.0.1",
+		"@typescript-eslint/parser": "^7.0.1",
+		"autoprefixer": "^10.4.17",
+		"eslint": "^8.56.0",
+		"eslint-config-prettier": "^9.1.0",
+		"eslint-plugin-svelte": "^2.35.1",
+		"prettier": "^3.2.5",
+		"prettier-plugin-svelte": "^3.2.1",
+		"sass": "^1.70.0",
+		"svelte": "^4.2.10",
+		"svelte-check": "^3.6.4",
+		"tauri-specta": "^0.0.2",
+		"typescript": "^5.3.3",
+		"vite": "^5.1.2"
+	},
+	"prettier": {
+		"useTabs": true,
+		"printWidth": 100,
+		"semi": false,
+		"singleQuote": true,
+		"plugins": [
+			"prettier-plugin-svelte"
+		]
+	}
 }
