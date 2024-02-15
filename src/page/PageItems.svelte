@@ -125,16 +125,20 @@
 
 {#each dir as item, i}
   <!-- svelte-ignore a11y-click-events-have-key-events -->
+  <!-- svelte-ignore a11y-interactive-supports-focus -->
   <div
     class="item"
+    role="button"
     class:open={item.isOpen}
     class:selected={$selectedPath === item.path}
     style={`padding-left: ${14 * indentLevel + 2}px`}
     on:mousedown={() => ($selectedPath = item.path)}
     on:click={() => openOrClose(item)}
   >
+    <!-- svelte-ignore a11y-interactive-supports-focus -->
     <div
       class="arrow"
+      role="button"
       on:mousedown|stopPropagation={() => openOrClose(item)}
       on:click|stopPropagation
     >

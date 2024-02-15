@@ -26,8 +26,8 @@
 
 <div class="content">
   {#each backups as backup}
-    <!-- svelte-ignore a11y-click-events-have-key-events -->
-    <div
+    <button
+      type="button"
       class="item"
       data-load-state={getLoadState($backupInfos, backup.path)}
       class:selected={$page.backup?.path === backup.path}
@@ -39,7 +39,7 @@
       }}
     >
       {backup.name}
-    </div>
+    </button>
   {/each}
 </div>
 
@@ -50,6 +50,11 @@
     flex-grow: 1
   $ease-md: cubic-bezier(0.4, 0.0, 0.2, 1)
   .item
+    display: block
+    font-family: inherit
+    text-align: left
+    background-color: transparent
+    border: 0px
     font-size: 14px
     color: hsla(216, 50%, 70%, 0.75)
     cursor: default

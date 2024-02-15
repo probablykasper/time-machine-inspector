@@ -46,7 +46,7 @@
 
 <div class="sidebar">
   {#if loading}
-    <div class="loading" transition:fade={{ duration: 500, easing: cubicInOut }}>
+    <div class="loading" transition:fade|global={{ duration: 500, easing: cubicInOut }}>
       <ProgressBar />
     </div>
   {/if}
