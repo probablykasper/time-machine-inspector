@@ -20,13 +20,13 @@ pub struct DestinationXml {
 	#[serde(alias = "Kind")]
 	pub kind: String,
 	#[serde(alias = "URL")]
-	pub url: String,
+	pub url: Option<String>,
 	#[serde(alias = "Name")]
 	pub name: String,
 	#[serde(alias = "ID")]
 	pub id: String,
 	#[serde(alias = "LastDestination")]
-	pub last_destination: usize,
+	pub last_destination: Option<usize>,
 	#[serde(alias = "MountPoint")]
 	pub mount_point: String,
 }
