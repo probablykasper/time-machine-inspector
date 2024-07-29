@@ -28,7 +28,7 @@ pub struct DestinationXml {
 	#[serde(alias = "LastDestination")]
 	pub last_destination: Option<usize>,
 	#[serde(alias = "MountPoint")]
-	pub mount_point: String,
+	pub mount_point: Option<String>,
 }
 
 #[derive(Serialize, Debug, Type)]
@@ -58,30 +58,36 @@ pub async fn destinationinfo(
 
 	let mut destinations_map = HashMap::new();
 	for destination_xml in &output_xml.destinations {
-		destinations_map.insert(
-			destination_xml.id.clone(),
-			Destination {
-				backups: None,
-				mount_point: destination_xml.mount_point.clone(),
-			},
-		);
+		if let Some(mount_point) = &destination_xml.mount_point {
+			destinations_map.insert(
+				destination_xml.id.clone(),
+				Destination {
+					backups: None,
+					mount_point: mount_point.clone(),
+				},
+			);
+		}
 	}
 	state.lock()?.destinations = Some(destinations_map.clone());
 
 	let destinations_details = output_xml
 		.destinations
 		.into_iter()
-		.map(|dest| {
-			let mount_point_name = if dest.mount_point.starts_with("/Volumes/") {
-				dest.mount_point["/Volumes/".len()..].to_string()
-			} else {
-				dest.mount_point.clone()
-			};
-			DestinationDetail {
-				id: dest.id,
-				mount_point: dest.mount_point,
-				mount_point_name,
-			}
+		.filter_map(|dest| {
+			let id = dest.id; // Move id out of dest to avoid borrow checker error
+			dest.mount_point.map(|mount_point| {
+				let mount_point_name = if mount_point.starts_with("/Volumes/") {
+					mount_point["/Volumes/".len()..].to_string()
+				} else {
+					mount_point.clone()
+				};
+
+				DestinationDetail {
+					id,
+					mount_point: mount_point.clone(),
+					mount_point_name,
+				}
+			})
 		})
 		.collect();
 
