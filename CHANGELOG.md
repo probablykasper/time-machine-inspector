@@ -1,5 +1,9 @@
 # Changelog
 
+## Next
+- Fix missing property errors
+- Ignore destinations without mount point (until a better solution is found)
+
 ## 1.2.0 - 2023 May 19
 - Support macOS 13
 - Support multiple backup destinations
