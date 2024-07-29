@@ -1,11 +1,13 @@
 <script lang="ts">
 	import PageItems from './PageItems.svelte'
-	import { page, backupInfos, pageMap } from './page'
+	import { page, backupInfos, pageMap, selectedPath } from './page'
 	import Button from '../lib/Button.svelte'
 	import ProgressBar from '../lib/ProgressBar.svelte'
 	import commands from '../lib/commands'
 	import type { DestinationDetail } from '../../bindings'
+	import { tick } from 'svelte'
 
+	let content_el: HTMLDivElement
 	export let destination: DestinationDetail | null = null
 
 	async function compare(autoLoad = false) {
@@ -30,6 +32,15 @@
 			}
 		}
 	}
+
+	$: if ($selectedPath) {
+		tick().then(() => {
+			console.log('.selected', document.querySelector('.selected'))
+			content_el
+				.querySelector('.selected')
+				?.scrollIntoView({ behavior: 'instant', block: 'nearest', inline: 'nearest' })
+		})
+	}
 </script>
 
 {#if !destination}
@@ -43,7 +54,7 @@
 {:else}
 	<main>
 		<div class="bar">{$page.backup.path}</div>
-		<div class="content">
+		<div class="content" bind:this={content_el}>
 			{#if $page.loading}
 				<div class="absolute center-align">
 					<ProgressBar />
