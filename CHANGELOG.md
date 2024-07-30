@@ -1,6 +1,6 @@
 # Changelog
 
-## Next
+## 1.2.1 - 2024 Jul 30
 - Fix missing property errors
 - Ignore destinations without mount point (until a better solution is found)
 - Scroll to selected item when using arrow keys
