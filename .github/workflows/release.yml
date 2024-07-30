@@ -7,7 +7,7 @@ on:
 
 jobs:
   release:
-    runs-on: macos-latest
+    runs-on: macos-13 # macos-14/latest are arm64 and do not produce x64 binaries
     steps:
       - name: Checkout repository
         uses: actions/checkout@v3
