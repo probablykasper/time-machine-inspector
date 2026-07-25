@@ -135,7 +135,7 @@ fn main() {
 			match event_name {
 				"Learn More" => {
 					let link =
-						"https://github.com/probablykasper/time-machine-inspector".to_string();
+						"https://github.com/kasper9n/time-machine-inspector".to_string();
 					shell::open(&event.window().shell_scope(), link, None).unwrap();
 				}
 				_ => {}
